@@ -1,0 +1,9 @@
+(alias (name DEFAULT) (deps subtyping.svg))
+
+(rule (targets subtyping.svg) (deps accessor_subtyping_diagram.exe)
+ (action
+  (bash
+   "%{workspace_root}/lib/accessor/doc/accessor_subtyping_diagram.exe | tred | dot -Tsvg > %{targets}")))
+
+(executables (names accessor_subtyping_diagram) (libraries core accessor)
+ (preprocess (pps ppx_jane)))

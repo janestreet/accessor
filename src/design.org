@@ -1,0 +1,976 @@
+
+This document aims to bring a developer up to speed for understanding the
+/implementation/ of ~Accessor~. If you are just trying to understand how to use
+it, try the [[../doc/tutorial.mlt][tutorial]] instead.
+
+If you intend to read this document but haven't read the [[../doc/tutorial.mlt][tutorial]] yet, you
+should read it first.
+
+* History
+
+  ~Accessors~ is inspired by a long history of developments on "lenses", mostly
+  in the Haskell world. There are many other relevant developments by many other
+  people that are omitted here. This is only trying to trace the most direct
+  lineage of the idea as experienced by me.
+
+** 2006: The Essence of the Iterator Pattern
+
+   In "The Essence of the Iterator Pattern," Gibbons and Oliveira highlight that
+   the ~Traversable~ type class that was relatively recently introduced in
+   Haskell is a functional version of the Iterator pattern (as in the Gang of
+   Four design pattern by the same name). I see this as early recognition and
+   embracing of the idea that it's about "accessing" data.
+
+   [[http://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf][The Essence of the Iterator Pattern]]
+
+   Here is a simplified definition of the ~Traversable~ type class, along with
+   the type classes it depends on.
+
+   #+BEGIN_SRC haskell
+     class Semigroup a where
+       (<>) :: a -> a -> a
+
+     class Semigroup a => Monoid a where
+       mempty :: a
+
+     class Functor f where
+       fmap :: (a -> b) -> f a -> f b
+
+     class Functor f => Applicative f where
+       pure :: a -> f a
+       (<*>) :: f (a -> b) -> f a -> f b
+
+     class Foldable t where
+       foldMap :: Monoid m => (a -> m) -> t a -> m
+
+     class (Functor t, Foldable t) => Traversable t where
+       traverse :: Applicative f => (a -> f b) -> t a -> f (t b)
+   #+END_SRC
+
+   One well-known (at Jane Street) example of a ~traverse~-like function in
+   OCaml is ~Deferred.List.map~. The corresponding ~Traversable~ instance would
+   instantiate ~t~ as ~list~, and the call site of ~traverse~ would instantiate
+   the applicative ~f~ as ~Deferred.t~. ~traverse~ happens to be much more
+   polymorphic, but the basic idea is the same.
+
+** 2007: Making Haskell nicer for game programming, Haskell State Accessors
+
+   In a series of blog posts, Luke Palmer invents an abstraction
+   called an "accessor".
+
+   - [[http://web.archive.org/web/20080515203207/http://luqui.org/blog/archives/2007/07/26/making-haskell-nicer-for-game-programming/][Making Haskell Nicer for Game Programming]]
+   - [[http://web.archive.org/web/20071023064034/http://luqui.org/blog/archives/2007/08/05/haskell-state-accessors-second-attempt-composability/][Haskell State Accessors (second attempt: Composability)]]
+
+   In the first post, an accessor is represented something like this:
+
+   #+BEGIN_SRC haskell
+     data Accessor s a
+       = Accessor
+         { readVal :: State s a
+         , writeVal :: a -> State s ()
+         }
+   #+END_SRC
+
+   Here, ~State~ is a monad for performing transformations on some purely
+   functional state:
+
+   #+BEGIN_SRC haskell
+     newtype State s a = State (s -> (a, s))
+   #+END_SRC
+
+   Palmer constructs several operations for working with accessors in the rest
+   of the first post. The second blog post covers making them compose, changing
+   the representation to this:
+
+   #+BEGIN_SRC haskell
+     data Accessor s a
+       = Accessor
+         { getVal :: s -> a
+         , setVal :: a -> s -> s
+         }
+   #+END_SRC
+
+   and defining composition like this:
+
+   #+BEGIN_SRC haskell
+     (@.) :: Accessor a b -> Accessor b c -> Accessor a c
+     f @. g =
+       Accessor
+         { getVal = getVal g . getVal f
+         , setVal = c a -> setVal f (setVal g c (getVal f a)) a
+         }
+   #+END_SRC
+
+   There is also a notable mention of /laws/ that must hold in order for an
+   ~Accessor~ to behave as an actual accessor.
+
+   #+BEGIN_SRC haskell
+     getVal accessor (setVal accessor a s) == a
+     setVal accessor (getVal accessor s) s == s
+   #+END_SRC
+
+   In our OCaml implementation, accessors that behave the way Palmer's did are
+   called "field" accessors, and there is a third law in addition to the above
+   two.
+
+** 2008: Semantic Editor Combinators
+
+   Conal Elliott blogs about an idea he calls "semantic editor combinators".
+
+   [[http://conal.net/blog/posts/semantic-editor-combinators][Semantic Editor Combinators]]
+
+   An editor combinator is essentially a function transformer. The observation
+   is that you can compose simple function transformers to create more complex
+   ones in a way that results in quite readable code, so you can conveniently
+   reach into complex data structures to make modifications. ~fmap~ is the most
+   common editor combinator in his post. He doesn't highlight this, but the
+   ~traverse~ function described earlier is also a good editor combinator.
+
+** 2009: CPS based functional references
+
+   Twan van Laarhoven blogs about a novel way of representing "functional
+   references".
+
+   [[https://www.twanvl.nl/blog/haskell/cps-functional-references][CPS based functional references]]
+
+   #+BEGIN_SRC haskell
+     type RefF a b = forall f. Functor f => (b -> f b) -> (a -> f a)
+   #+END_SRC
+
+   At first glance it seems to have absolutely nothing to do with the ~Accessor~
+   type Palmer defined, but it turns out that they are exactly isomorphic. The
+   following code witnesses the isomorphism (though it doesn't come from the
+   blog post):
+
+   #+BEGIN_SRC haskell
+     create :: (s -> a) -> (a -> s -> s) -> RefF s a
+     create get set f s = fmap (\a -> set a s) (f (get s))
+
+     accessorToRefF :: Accessor s a -> RefF s a
+     accessorToRefF (Accessor get set) = create get set
+
+     refFToAccessor :: RefF s a -> Accessor s a
+     refFToAccessor refF = Accessor get set
+       where
+         get s = getConst (refF Const s)
+         set a s = runIdentity (refF (Identity . const a) s)
+   #+END_SRC
+
+   where the following types come from the standard library:
+
+   #+BEGIN_SRC haskell
+     newtype Identity a = Identity { runIdentity :: a }
+
+     newtype Const a b = Const { getConst :: a }
+   #+END_SRC
+
+   with the following ~Functor~ instances:
+
+   #+BEGIN_SRC haskell
+     instance Functor Identity where
+       fmap f (Identity a) = Identity (f a)
+
+     instance Functor (Const a) where
+       fmap f (Const a) = Const a
+   #+END_SRC
+
+   Like Palmer's accessors, van Laarhoven's functional references are
+   composable. However, unlike the former, van Laarhoven's version is composable
+   using plain old function composition, the same way Conal's semantic editor
+   combinators compose.
+
+   My guess is that the way he came up with this is by seeing what
+   happened when replacing the ~Applicative~ constraint in the type of
+   ~traverse~ with ~Functor~.
+
+   This style eventually became known as "van Laarhoven lenses".
+
+** 2012: Polymorphic Update with van Laarhoven Lenses
+
+   Russell O'Connor approaches the problem of "polymorphic update".
+
+   [[http://r6.ca/blog/20120623T104901Z.html][Polymorphic Update with van Laarhoven Lenses]]
+
+   Suppose we have a lens that accesses the first component of a tuple:
+
+   #+BEGIN_SRC haskell
+     fstLens :: RefF (a, b) a
+     fstLens = create fst (\a (_, b) -> (a, b))
+   #+END_SRC
+
+   This lens allows you to modify the value of the first component of any tuple,
+   regardless of its type, so in that sense it is polymorphic. However, it does
+   not allow you to change the type of the first component of a tuple.
+
+   O'Connor noticed that if you simply omit the type signature for the
+   above-defined ~create~ function, you get a more general type:
+
+   #+BEGIN_SRC haskell
+     let create get set f s = fmap (\a -> set a s) (f (get s))
+     :t create
+   #+END_SRC
+
+   #+RESULTS:
+   : create
+   :   :: Functor f =>
+   :      (t1 -> t) -> (a -> t1 -> b) -> (t -> f a) -> t1 -> f b
+
+   Rearranging and renaming a bit, we get something that a bit more closely
+   resembles the original type signature:
+
+   #+BEGIN_SRC haskell
+     (s -> a) -> (b -> s -> t) -> (forall f. Functor f => (a -> f b) -> (s -> f t))
+   #+END_SRC
+
+   Defining ~fstLens~ with this function is also more general:
+
+   #+BEGIN_SRC haskell
+     fstLens :: Functor f => (a -> f b) -> (a, c) -> f (b, c)
+     fstLens = create fst (\a (_, b) -> (a, b))
+   #+END_SRC
+
+   It turns out that van Laarhoven lenses already supported polymorphism if only
+   they hadn't been type constrained by hand.
+
+** 2012: Mirrored Lenses
+
+   The very next day, Ed Kmett publishes a blog post about how such polymorphic
+   lenses, which at the point he is calling "lens families", are still perfectly
+   reasonable to impose the "lens laws" on, and that the lens laws just imply
+   that the polymorphism isn't quite as unconstrained as it appears.
+
+   [[http://comonad.com/reader/2012/mirrored-lenses/][Mirrored Lenses]]
+
+   He also starts exploring using specializations of ~Functor~ to define more
+   specialized lenses.
+
+** 2012: The lens Haskell library
+
+   The day after publishing his Mirrored Lenses post, Ed Kmett releases the
+   first version of the lens library to Hackage. Within just a few days, several
+   versions were released, including some that started toying around with the
+   representation to make more things representable, like isomorphisms. Here was
+   original type definition for isomorphisms:
+
+   #+BEGIN_SRC haskell
+     type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
+   #+END_SRC
+
+   It used the following, rather ad hoc in my opinion, type class (don't study
+   it too hard, as we won't be using it beyond this section):
+
+   #+BEGIN_SRC haskell
+     class Category k => Isomorphic k where
+       isomorphic :: (a -> b) -> (b -> a) -> k a b
+       isomap :: ((a -> b) -> c -> d) -> ((b -> a) -> d -> c) -> k a b -> k c d
+   #+END_SRC
+
+   This was instantiated by two types. One was just for isomorphisms:
+
+   #+BEGIN_SRC haskell
+     data Isomorphism a b = Isomorphism (a -> b) (b -> a)
+   #+END_SRC
+
+   The other instance was for plain Haskell functions. This was the magical
+   part. It meant that isomorphisms could be composed with other isomorphisms,
+   leaving them as isomorphisms, but they could also be composed with lenses,
+   forcing that ~k~ type to become ~(->)~, resulting in just plain lenses!
+
+   A few months later, v1.8 is published. This version is noteworthy only
+   because it is the first version to include a diagram on its project page
+   showing the subtyping heirarchy of various lenses.
+
+   By December, a version was released that included ~Prism~ (which in our
+   ~Accessor~ library is called a ~variant~ accessor). It followed a similar
+   template to ~Iso~.
+
+   January of 2013 saw the introduction of profunctors in the lens library,
+   overhauling how ~Iso~ and ~Prism~ are represented. Here is the new definition
+   for ~Iso~, and how it remains today:
+
+   #+BEGIN_SRC haskell
+     type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
+   #+END_SRC
+
+   Here is the ~Profunctor~ type class:
+
+   #+BEGIN_SRC haskell
+     class Profunctor p where
+       dimap :: (a -> b) -> (c -> d) -> p b c -> p a d
+   #+END_SRC
+
+   From here, there were numerous discoveries leading to a fairly coherent
+   theory of lenses based solely on various specializations of ~Profunctor~,
+   without the ~Functor~ type. That is, as far as I am aware, the evolution from
+   van Laarhoven lenses to so-called "profunctor optics" went like this:
+
+   #+BEGIN_SRC haskell
+     type Optic c s t a b = forall f. c f => (a -> f b) -> (s -> f t)
+
+     type Optic cp cf s t a b = forall p f. (cp p, cf f) => p a (f b) -> p s (f t)
+
+     type Optic c s t a b = forall p. c p => p a b -> p s t
+   #+END_SRC
+
+   The Haskell lens library never transitioned fully to the profunctor-only
+   representation because van Laarhoven lenses happen to fit very well with
+   existing Haskell functions such that you can simply use those existing
+   functions /as/ optics, such as ~fmap~ and ~traverse~, but most newer optics
+   libraries are based on profunctors.
+
+** 2016: Profunctor Optics: Modular Data Accessors
+
+   Profunctor optics continued to evolve fairly organically on the Internet
+   without much involvement from academia. Eventually, Pickering, Gibbons, and
+   Wu published a pretty great paper documenting the idea.
+
+   [[https://arxiv.org/pdf/1703.10857.pdf][Profunctor Optics: Modular Data Accessors]]
+
+   There isn't much new in there, but it's worth mentioning here just because it
+   collects a lot of information in one place.
+
+* Our Implementation
+
+  ~Accessor~ has a profunctor optics inspired representation. For reference,
+  here is the Haskell-style representation of a generic profunctor optic, again:
+
+  #+BEGIN_SRC haskell
+    type Optic c s t a b = forall p. c p => p a b -> p s t
+  #+END_SRC
+
+** Just getting it working
+
+   There have been attempts to implement lenses in OCaml before, both van
+   Laarhoven style and profunctor style, but the combination of features used in
+   the Haskell encoding are difficult to emulate:
+
+   - higher rank types (universal quantification) without boxing
+   - no value restriction
+   - higher kinded types (polymorphic type constructors)
+   - type classes
+
+*** Higher rank types
+
+   In Ocaml, the only way to define a higher rank type is by making it a record
+   field or put it in a first class module. In some terrible syntax resembling
+   OCaml with higher kinded types and type classes, that turns the above Haskell
+   type into something like this:
+
+   #+BEGIN_SRC ocaml
+     type ('c, 's, 't, 'a, 'b) optic = { f : 'p. 'p 'c => ('a, 'b) 'p -> ('s, 't) 'p }
+   #+END_SRC
+
+   What does this cost us? In Haskell, normal function composition, which is
+   conveniently just ~(.)~, can be used to compose lenses. With the record
+   wrapper, this is no longer true. This doesn't seem like a significant loss at
+   all.
+
+   We also gained something by boxing it up this way. Types and type errors are
+   significantly easier to read. This difficulty just happens to force us into a
+   good decision.
+
+*** Living with the value restriction
+
+    Haskell, lacking uncontrolled mutation, has no need for the value
+    restriction, so you can freely define polymorphic functions as expressions.
+    In OCaml, though, composing polymorphic values can be trickier. Accessors
+    are meant to be composed all over the place, so this is bound to be a
+    problem at least occasionally. The value restriction would hurt accessors
+    /very/ badly due to subtyping, which is discussed more later.
+
+    It turns out that most usages of accessors are inlined into some larger
+    expression, where the right thing is almost always for them to be
+    monomorphized anyway. We only have issues with the value restriction when
+    let binding accessors to be reused multiple times. This is still common
+    enough to be worth addressing. The solution implemented for ~Accessor~ is a
+    ppx that knows how to unwrap and rewrap the containing record.
+
+    Here's an example. Suppose we are defining the following accessor:
+
+    #+BEGIN_SRC ocaml
+      let a = b @> c
+    #+END_SRC
+
+    This would be hit by the value restriction. To fix it, we need to "eta
+    expand" it. Here I'm assuming we're using the impossible representation from
+    above, using type classes and higher kinded types:
+
+    #+BEGIN_SRC ocaml
+      let a = { f = fun abp -> (b @> c).f abp }
+    #+END_SRC
+
+    This is annoying and confusing to write, so =ppx_accessor= supports the
+    following syntax instead:
+
+    #+BEGIN_SRC ocaml
+      let a = [%accessor b @> c]
+    #+END_SRC
+
+*** Higher kinded types
+
+    We've already created a "solution" to the lack of higher kinded types, in
+    the form of the ~Higher_kinded~ library. It's not perfect, though, and it
+    adds a lot of boilerplate. The upshot is that we can start turning the
+    invalid OCaml type into real OCaml like this:
+
+   #+BEGIN_SRC ocaml
+     type ('c, 's, 't, 'a, 'b) optic =
+       { f
+         :  'p
+         .  'p 'c
+         => ('a, 'b, 'p) Higher_kinded.t2
+         -> ('s, 't, 'p) Higher_kinded.t2
+       }
+   #+END_SRC
+
+   Now all that's left to make this valid OCaml is type classes.
+
+*** Type classes
+
+    Type classes have a fundamental role in the Haskell implementation, in
+    particular for the subtyping. They are used for two things: ad hoc
+    polymorphism and subtyping.
+
+**** Dictionary passing
+
+    A common way that type classes are implemented in Haskell compilers is by
+    giving them a runtime representation. GHC represents them as "dictionaries",
+    that is, records of functions. For example, the ~Profunctor~ type class
+    might, in Haskell syntax, be represented as a value of the following type:
+
+    #+BEGIN_SRC haskell
+      data ProfunctorDict p =
+        ProfunctorDict { dimap :: forall a b c d. (b -> a) -> (c -> d) -> p a c -> p b d }
+    #+END_SRC
+
+    For subclasses, the dictionary might contain a reference to the dictionary
+    of the type's superclass instance:
+
+    #+BEGIN_SRC haskell
+      data CartesianDict p =
+        CartesianDict
+          { profunctorDict :: ProfunctorDict p
+          , first :: p a b -> p (a, c) (b, c)
+          , second :: p a b -> p (c, a) (c, b)
+          }
+    #+END_SRC
+
+    For monomorphic call sites, the compiler would figure out the correct
+    dictionary to pass from the type. For polymorphic call sites, the compiler
+    would expect some dictionary to have been passed in from elsewhere.
+
+    We can use the same implementation technique to emulate type classes in
+    OCaml:
+
+    #+BEGIN_SRC ocaml
+      type 'p profunctor =
+        { dimap
+          :  'a 'b 'c 'd
+          .  ('a, 'c, 'p) Higher_kinded.t2
+          -> contra_map:('b -> 'a)
+          -> map:('c -> 'd)
+          -> ('b, 'd, 'p) Higher_kinded.t2
+        }
+
+      type 'p cartesian =
+        { profunctor : 'p profunctor
+        ; first
+          :  'a 'b 'c
+          .  ('a, 'b, 'p) Higher_kinded.t2
+          -> ('a * 'c, 'b * 'c, 'p) Higher_kinded.t2
+        ; second
+          :  'a 'b 'c
+          .  ('a, 'b, 'p) Higher_kinded.t2
+          -> ('c * 'a, 'c * 'b, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+    We just have to be explicit about which dictionary to use at call sites,
+    because the compiler won't infer it.
+
+    This is enough for us to represent something like the basic profunctor
+    encoding of lenses:
+
+    #+BEGIN_SRC ocaml
+      type ('a, 'b, 's, 't) lens =
+        { f
+          :  'p
+          .  'p cartesian
+          -> ('a, 'b, 'p) Higher_kinded.t2
+          -> ('s, 't, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+**** Subtyping
+
+     The above definition of ~lens~ works fine on its own, but it's limited to
+     field-like accessors. We can support other kinds of optics by exchanging
+     the dictionary type for others. For example, if we exchange ~cartesian~
+     with ~cocartesian~, we can define a ~prism~:
+
+    #+BEGIN_SRC ocaml
+      type 'p cocartesian =
+        { profunctor : 'p profunctor
+        ; first
+          :  'a 'b 'c
+          .  ('a, 'b, 'p) Higher_kinded.t2
+          -> (('a, 'c) Either.t, ('b, 'c) Either.t, 'p) Higher_kinded.t2
+        ; second
+          :  'a 'b 'c
+          .  ('a, 'b, 'p) Higher_kinded.t2
+          -> (('c, 'a) Either.t, ('c, 'b) Either.t, 'p) Higher_kinded.t2
+        }
+
+      type ('a, 'b, 's, 't) prism =
+        { f
+          :  'p
+          .  'p cocartesian
+          -> ('a, 'b, 'p) Higher_kinded.t2
+          -> ('s, 't, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+    But sadly the ~lens~ and ~prism~ types have nothing to do with each other!
+    We would like to define one type for all optics, regardless of what kind of
+    optic it is, relating them all.
+
+    The most obvious way is probably to make the dictionary type an additional
+    type parameter. We need to use ~Higher_kinded~ for this:
+
+    #+BEGIN_SRC ocaml
+      type ('a, 'b, 's, 't, 'k) optic =
+        { f
+          :  'p
+          .  ('p, 'k) Higher_kinded.t2
+          -> ('a, 'b, 'p) Higher_kinded.t2
+          -> ('s, 't, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+    But now we're just going to end up with a series of types like this:
+
+    #+BEGIN_SRC ocaml
+      type ('a, 'b, 's, 't) iso = ('a, 'b, 's, 't, Profunctor.witness) optic
+      type ('a, 'b, 's, 't) lens = ('a, 'b, 's, 't, Cartesian.witness) optic
+      type ('a, 'b, 's, 't) prism = ('a, 'b, 's, 't, Cocartesian.witness) optic
+    #+END_SRC
+
+    These types still can't compose with each other to do anything interesting.
+    What we really want is for the witnesses themselves to be in some subtyping
+    relationship with each other. We can achieve this using a GADT, instead of
+    ~Higher_kinded~, and in place of the witness type parameter we come up with
+    some appropriate polymorphic variant encoding of all the different accessor
+    kinds and how they relate, somewhat like the ~Perms.t~ encoding in ~Core~.
+
+    Each constructor of the GADT corresponds to some dictionary. For example,
+    here is a GADT encoding the ~profunctor~, ~cartesian~, and ~cocartesian~
+    dictionaries:
+
+    #+BEGIN_SRC ocaml
+      type ('p, 'k) dictionary =
+        | Profunctor : 'p profunctor -> ('p, [< `profunctor ]) t
+        | Cartesian : 'p cartesian -> ('p, [< `profunctor | `cartesian ]) t
+        | Cocartesian : 'p cocartesian -> ('p, [< `profunctor | `cocartesian ]) t
+    #+END_SRC
+
+    Our optic type can now be defined like this:
+
+    #+BEGIN_SRC ocaml
+      type ('a, 'b, 's, 't, 'k) optic =
+        { f
+          :  'p
+          .  ('p, 'k) dictionary
+          -> ('a, 'b, 'p) Higher_kinded.t2
+          -> ('s, 't, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+    And different kinds of optics can now compose!
+
+** Extending accessors with indices
+
+   Left out of the history written earlier in this document is the evolution of
+   so-called "indexed" optics. The problem to be solved is that of supplying the
+   user of an optic with some sort of "breadcrumb" indicating where they are in
+   the data structure they are accessing. For example, ~List.mapi~ gives its
+   function argument access to the index of each element in the list, along with
+   the element itself.
+
+   The ~lens~ library has, in my opinion, a somewhat unsatisfying story for
+   indices. Indexed optics in ~lens~ have distinct types from unindexed ones,
+   with totally different implementations. They compose fine with unindexed
+   optics, but when you compose them with each other it drops one of the
+   indices. If you want to keep both, you have to use a special compose
+   function. Depending on which function you use, it either builds up an
+   annoying to use tuple or requires you to explicitly tell it how to combine
+   indices. Indexed optics in ~lens~ also involve even crazier looking types
+   than unindexed ones, such as this monstrous type class:
+
+   #+BEGIN_SRC haskell
+     class
+       ( Choice p
+       , Corepresentable p
+       , Comonad (Corep p)
+       , Traversable (Corep p)
+       , Strong p
+       , Representable p
+       , Monad (Rep p)
+       , MonadFix (Rep p)
+       , Distributive (Rep p)
+       , Costrong p
+       , ArrowLoop p
+       , ArrowApply p
+       , ArrowChoice p
+       , Closed p
+       ) => Conjoined p
+     where
+       distrib :: Functor f => p a b -> p (f a) (f b)
+       conjoined :: (p ~ (->) => q (a -> b) r) -> q (p a b) r -> q (p a b) r
+   #+END_SRC
+
+   For a long time, it also wasn't very clear how to make indexed
+   pure-profunctor optics even as "nice" as the indexed
+   hybrid-van-Laarhoven-profunctor optics in ~lens~. In 2016, Oleg Grenrus
+   responded to a challenge from Ed Kmett by [[http://oleg.fi/gists/posts/2017-04-26-indexed-poptics.html][solving it]]. As far as I know,
+   ~Accessor~ is the first library to use his technique.
+
+   It requires adding two more type arguments to our ~optic~ type:
+
+   #+BEGIN_SRC ocaml
+      type ('i, 'a, 'b, 'j, 's, 't, 'k) indexed_optic =
+        { f
+          :  'p
+          .  ('p, 'k) dictionary
+          -> ('i * 'a, 'b, 'p) Higher_kinded.t2
+          -> ('j * 's, 't, 'p) Higher_kinded.t2
+        }
+   #+END_SRC
+
+   The trick is to treat the indices not as single indices but as a /stack/ of
+   indices, where the stack gets deeper as you reach more deeply into a data
+   structure. The ~j~ type parameter above is the "input" stack, coming in from
+   the outside of the data structure, and the ~i~ type parameter is the "output"
+   stack, being read from the inside of the data structure.
+
+** Niceties
+
+*** Names
+
+    Instead of using various words for optical devices, we try to use
+    terminology more familiar to an OCaml programmer, like ~field~, ~variant~,
+    etc. The main type is called an "accessor". Generally, the hope is that the
+    names describe what things are fairly well.
+
+    The subtyping schema described in the previous section used names like
+    ~profunctor~, ~cartesian~, and ~cocartesian~. Since these words will
+    actually appear in type errors, etc., it seems worth rethinking this. It
+    turns out that the public subtyping schema we use doesn't actually have to
+    line up with the type classes at all, as long as the same relationships
+    between accessor kinds are implied. The scheme we actually use inverts the
+    arrows and uses polymorphic variants to encode what sets of "features" are
+    supported by each kind of accessor. That is, if ~A~ is a subtype of ~B~,
+    that means ~A~ has more features than ~B~. The features are selected to try
+    to have intuitive meanings, to make type errors easier to grok. The details
+    are in =subtyping_intf.ml=.
+
+*** Type classes
+
+    The type classes we actually use in ~Accessor~ have little to do with the
+    type class heirarchy used in most other implementations. The observation is
+    that every kind of accessor can be represented with exactly one type class
+    with exactly one method that knows how to convert from a concrete accessor
+    representation to a transformation between mappings. Let's take the
+    ~profunctor~ type class as an example:
+
+    #+BEGIN_SRC ocaml
+      type 'p profunctor =
+        { dimap
+          :  'a 'b 'c 'd
+          .  ('a, 'c, 'p) Higher_kinded.t2
+          -> contra_map:('b -> 'a)
+          -> map:('c -> 'd)
+          -> ('b, 'd, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+    This type class happens to characterize isomorphisms. How do we construct an
+    isomorphism?
+
+    #+BEGIN_SRC ocaml
+      val isomorphism
+        :  get:('s -> 'a)
+        -> construct:('b -> 't)
+        -> ('a, 'b, 's, 't, [< isomorphism]) accessor
+    #+END_SRC
+
+    In the implementation, the ~get~ and ~construct~ functions happen to be
+    supplied as the ~contra_map~ and ~map~ arguments to ~dimap~. With some
+    renaming, we can present ~profunctor~ as a type class just for isomorphisms:
+
+    #+BEGIN_SRC ocaml
+      type 'p isomorphism =
+        { f
+          :  'a 'b 's 't
+          .  get:('s -> 'a)
+          -> construct:('b -> 't)
+          -> ('a, 'b, 'p) Higher_kinded.t2
+          -> ('s, 't, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+    This works out for every kind of accessor. For example, ~field~ accessors
+    can be characterized with the following type class:
+
+    #+BEGIN_SRC ocaml
+      type 'p field =
+        { f
+          :  'a 'b 's 't
+          .  get:('s -> 'a)
+          -> set:('s -> 'b -> 't)
+          -> ('a, 'b, 'p) Higher_kinded.t2
+          -> ('s, 't, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+    Even though ~field~ is supposed to be a subclass of ~isomorphism~, it no
+    longer needs to include an implementation of ~isomorphism~ in its own
+    representation. The one function it contains is sufficient to create an
+    ~isomorphism~ dictionary from a ~field~ dictionary:
+
+    #+BEGIN_SRC ocaml
+      let field_to_isomorphism ({ f } : _ field) : _ isomorphism =
+        { f = fun ~get ~construct -> f ~get ~set:(fun _ b -> construct b) }
+    #+END_SRC
+
+    The type class definitions all live in =dictionary.ml=, along with the GADT
+    we use to relate them with subtyping. Its interface provides functions for
+    constructing and observing dictionaries respecting subtyping, automatically
+    converting the dictionary as needed.
+
+*** Indices
+
+    The ~Index~ module defines a list-like type that we use as our stack of
+    indices. It overloads the ~list~ constructors to make pattern matching
+    convenient.
+
+    To avoid the need to convert back and forth between indexed and unindexed
+    accessors, /all/ accessors are indexed. So-called "unindexed" accessors are
+    just indexed accessors that pass the index stack through without adding
+    anything on top of it.
+
+*** Type parameters
+
+    The accessor type up to now has seven type parameters. That's a bit much. We
+    address this in two ways.
+
+    First, we define a "simple" accessor type for unindexed, monomorphic
+    accessors, having "only" four type parameters:
+
+    #+BEGIN_SRC ocaml
+      type ('i, 'a, 's, 'k) simple = ('i, 'a, 'a, 'i, 's, 's, 'k) accessor
+    #+END_SRC
+
+    For the second improvement, well, there's not much we can do to remove the
+    actual number of type variables, but we can /trick/ the user into seeing it
+    as a simpler type by artifically reducing the number of parameters using a
+    GADT resulting a fewer parameters that in practice always have more complex
+    structure.
+
+    Here's what we're dealing with so far:
+
+    #+BEGIN_SRC ocaml
+      type ('i, 'a, 'b, 'j, 's, 't, 'k) accessor =
+        { f
+          :  'p
+          .  ('p, 'k) dictionary
+          -> ('i Index.t * 'a, 'b, 'p) Higher_kinded.t2
+          -> ('j Index.t * 's, 't, 'p) Higher_kinded.t2
+        }
+    #+END_SRC
+
+    Note that ~i~, ~a~, and ~b~ are related to each other, in that they all
+    belong to some "input" value. ~j~, ~s~, and ~t~ are also related to each
+    other, in that they all belong to an "output" value. We can make a wrapper
+    around that ~Higher_kinded.t~ to collect the three types into one parameter:
+
+    #+BEGIN_SRC ocaml
+      type ('m, 'p) mapping =
+        | T : ('i Index.t * 'a, 'b, 'p) Hk.t2 -> ('i -> 'a -> 'b, 'p) mapping
+    #+END_SRC
+
+    This type lives in =mapping.ml=.
+
+    For simplifying ~accessor~, this does wonders:
+
+    #+BEGIN_SRC ocaml
+      type ('inner, 'outer, 'kind) accessor =
+        { f
+          :  'p
+          .  ('p, 'kind) dictionary
+          -> ('inner, 'kind) mapping
+          -> ('outer, 'kind) mapping
+        }
+    #+END_SRC
+
+    This also allows functions like ~Accessor.compose~ to have very easy to read
+    types. Most accessor functions do put some structure back into those
+    positions. They appear as function types. For example, ~Accessor.map~ has
+    this type:
+
+    #+BEGIN_SRC ocaml
+      val map
+        :  (unit -> 'a -> 'b, unit -> 's -> 't, [> mapper]) accessor
+        -> 's
+        -> f:('a -> 'b)
+        -> 't
+    #+END_SRC
+
+    Without this trick, ~map~ actually would have a smaller type, but I think
+    it's harder to understand because it conveys less of the structure:
+
+    #+BEGIN_SRC ocaml
+      val map
+        :  (unit, 'a, 'b, unit, 's, 't, [> mapper]) accessor
+        -> 's
+        -> f:('a -> 'b)
+        -> 't
+    #+END_SRC
+
+    Finally, we change the type variable naming scheme from ~a~, ~b~, ~s~, and
+    ~t~ to ~a~, ~b~, ~at~ and ~bt~. This is an attempt to make the latter two
+    look more like polymorphic type constructors. This matches up better with
+    many of the types one might encounter in practice, such as that of
+    ~Accessor.Option.some~:
+
+    #+BEGIN_SRC ocaml
+      val some : ('i -> 'a -> 'b, 'i -> 'a option -> 'b option, [< variant ]) accessor
+    #+END_SRC
+
+    The ~at~ and ~bt~ names match up with ~a~ and ~b~ in a way that suggests
+    they are being wrapping in some ~t~ type constructor.
+
+    This makes the type of ~map~ actually look something like this:
+
+    #+BEGIN_SRC ocaml
+      val map
+        :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> mapper]) accessor
+        -> 'at
+        -> f:('a -> 'b)
+        -> 'bt
+    #+END_SRC
+
+*** Custom type class dictionaries
+
+    It seems desirable to allow advanced users to write their own functions for
+    consuming accessors by creating their own dictionaries. It's not well
+    documented yet, but the signature for this is in =custom_mappings_intf.ml=.
+    (Most people should not need this, which is why it's not inlined into
+    =accessor.mli=.) This module provides a bunch of functors that allow even
+    advanced users to do this without ever seeing a ~Higher_kinded.t~. Each
+    functor in this interface accepts a representative function for the
+    dictionary, and it provides a function for consuming accessors using that
+    dictionary.
+
+*** Helper DSLs for defining multi-accessors
+
+    Earlier versions of the interface required users defining custom
+    multi-accessors, such as ~many~ accessors, to work with some anonymous
+    applicative. The best version of this interface I could come up with was to
+    give them a first class module with a higher kinded version of some
+    applicative interface so they could open a contained ~Let_syntax~ module and
+    go. This was pretty clumsy. Defining an accessor that accesses both
+    components of a tuple looked something like this:
+
+    #+BEGIN_SRC ocaml
+      let each =
+        [%accessor
+          Accessor.nonempty
+            { f =
+              (fun
+                 (type w)
+                 (module A : w Accessor.Applicative_without_return.t)
+                 (a, b)
+                 ~f ->
+                 let open A.Let_syntax in
+                 let%map a = f a
+                 and b = f b
+                 in
+                 a, b)
+            }]
+    #+END_SRC
+
+    =many.ml= and =nonempty.ml= make this a lot nicer by providing a single
+    applicative to use from a global scope. The only cost is that you have to
+    use a special ~access~ function instead of a function argument, which is a
+    bit less typical but probably not that bad. Here is the above function
+    written in the new style:
+
+    #+BEGIN_SRC ocaml
+      let each =
+        [%accessor
+          Accessor.nonempty (fun (a, b) ->
+            let open Accessor.Nonempty.Let_syntax in
+            let%map_open a = access a
+            and b = access b
+            in
+            a, b)]
+    #+END_SRC
+
+    The implementation of these monads is a fairly directly translation from the
+    earlier style. The type itself is a function from an applicative and some
+    function argument, removing them from view of the user. The type also
+    handles the quantification over the higher kinded witness.
+
+    There are similar types for creating ~many_getter~ and ~nonempty_getter~
+    accessor functions. They are monoidal instead of applicative, and they live
+    in =many_getter.ml= and =nonempty_getter.ml=, respectively.
+
+* False starts
+
+  Before attempting a direct translation from the Haskell implementations I was
+  already familiar with, I thought I could be clever and make the OCaml version
+  use more concrete representations for accessors. The best attempt in this
+  direction was to define accessors as a big GADT where each case was some
+  concrete kind of accessor. Here's a subset of such a definition:
+
+  #+BEGIN_SRC ocaml
+    type ('a, 'b, 'at, 'bt, 'k) accessor =
+      | Isomorphism
+        :  { get : 'at -> 'a
+           ; construct : 'b -> 'bt
+           }
+        -> ('a, 'b, 'at, 'bt, [< isomorphism]) t
+      | Field
+        :  { get : 'at -> 'a
+           ; set : 'at -> 'b -> 'bt
+           }
+        -> ('a, 'b, 'at, 'bt, [< field]) t
+  #+END_SRC
+
+  There were a few problems with this.
+
+  The first problem I ran into was that the ~compose~ function was extremely
+  large and complex. It needed to handle every possible pair of accessors kinds,
+  converting them to their common subtype, and only then could it compose them
+  in the normal way. This would make it pretty annoying to add new types of
+  accessors in the future, and it was pretty difficult to figure out what that
+  function was doing.
+
+  The second problem was related to the first. This would easily lead to very
+  inefficient computations when composing long chains of accessors, because a
+  single accessor might be converted to several different accessor kinds along
+  the way, and then once more to the final accessor type needed by the consuming
+  function. Some of these conversions were more expensive than others, and this
+  tended to make the expensive cases happen a lot more frequently. In contrast,
+  the profunctor encoding we're actually using performs exactly one conversion
+  to exactly the correct type of accessor at the point we are using it.
+
+  A third, somewhat more minor, problem is the value restriction. It can't
+  really be stopped without a function representation. The solution to this is
+  to thunk the representation, making it a function from ~unit~ to the above
+  type.
+
+  The final, most serious, problem is that I couldn't figure out how to get the
+  compiler to accept ~compose~. It seems to struggle a lot with type indices
+  with subtyping as it is, and trying to unify them across two arguments is
+  probably just impossible as the language current exists.

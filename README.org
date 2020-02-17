@@ -1,0 +1,3 @@
+
+The ~Accessor~ library makes it nicer to work with nested functional data
+structures. See the tutorial for more information.

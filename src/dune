@@ -1,0 +1,3 @@
+(library (name accessor)
+ (libraries applicative_without_return base higher_kinded)
+ (preprocess (pps ppx_jane)))
