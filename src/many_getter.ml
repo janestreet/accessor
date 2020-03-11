@@ -40,7 +40,9 @@ let map_reduce t = t.f
 let append t1 t2 =
   { f =
       (fun ~empty ~combine ~f ->
-         combine (t1.f ~empty ~combine ~f) (t2.f ~empty ~combine ~f))
+         let a = t1.f ~empty ~combine ~f in
+         let b = t2.f ~empty ~combine ~f in
+         combine a b)
   }
 ;;
 

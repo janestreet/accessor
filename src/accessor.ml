@@ -1557,30 +1557,8 @@ let foldi t at ~init ~f =
     init
 ;;
 
-let iter t at ~f =
-  map_reduce
-    t
-    at
-    ~empty:Fn.id
-    ~combine:(fun l r () ->
-      l ();
-      r ())
-    ~f:(fun a () -> f a)
-    ()
-;;
-
-let iteri t at ~f =
-  map_reducei
-    t
-    at
-    ~empty:Fn.id
-    ~combine:(fun l r () ->
-      l ();
-      r ())
-    ~f:(fun i a () -> f i a)
-    ()
-;;
-
+let iter t at ~f = map_reduce t at ~empty:() ~combine:(fun () () -> ()) ~f
+let iteri t at ~f = map_reducei t at ~empty:() ~combine:(fun () () -> ()) ~f
 let length t at = fold t at ~init:0 ~f:(fun n _ -> Int.succ n)
 
 let is_empty t at =
