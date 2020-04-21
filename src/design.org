@@ -1,9 +1,9 @@
 
 This document aims to bring a developer up to speed for understanding the
 /implementation/ of ~Accessor~. If you are just trying to understand how to use
-it, try the [[../doc/tutorial.mlt][tutorial]] instead.
+it, try the [[../doc/tutorial.mdx][tutorial]] instead.
 
-If you intend to read this document but haven't read the [[../doc/tutorial.mlt][tutorial]] yet, you
+If you intend to read this document but haven't read the [[../doc/tutorial.mdx][tutorial]] yet, you
 should read it first.
 
 * History

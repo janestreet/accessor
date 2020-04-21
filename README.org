@@ -1,3 +1,14 @@
 
 The ~Accessor~ library makes it nicer to work with nested functional data
-structures. See the tutorial for more information.
+structures.
+
+An accessor is a value that understands how to reach data within a
+larger data structure, independently from what you intend to do with
+it. Accessors allow you to read and write data and perform
+possibly-monadic traversals. By composing accessors, you can work with
+increasingly complex data structures.
+
+In case you have ever heard of "lenses", this is an OCaml
+implementation of that idea.
+
+See the [[./doc/tutorial.mdx][tutorial]] for more information.
