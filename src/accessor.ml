@@ -6,8 +6,7 @@ module Index = Index
 module Subtyping = Subtyping
 
 type ('inner, 'outer, 'kind) t =
-  { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t
-  }
+  { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t }
 [@@unboxed]
 
 module Simple = struct
@@ -947,8 +946,7 @@ module Applicative = struct
     Applicative_s with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
 
   module type S2 =
-    Applicative_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Applicative_s2 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
 end
 
 module Applicative_without_return = struct
@@ -1308,8 +1306,7 @@ module Of_applicative_without_return3 (A : sig
 
     val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
     val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
-  end) : Applicative_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t =
-struct
+  end) : Applicative_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t = struct
   include Nonempty.Of_applicative_without_return3 (A)
 
   module Kleisli = Nonempty.Make_access4 (struct

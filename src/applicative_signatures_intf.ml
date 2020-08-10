@@ -262,8 +262,7 @@ module type Monad_without_return_s3 =
   with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
 
 module type Monad_s2 =
-  Applicative_general
-  with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
+  Applicative_general with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
 
 module type Monad_without_return_s2 = sig
   type ('a, 'e) t

@@ -20,8 +20,7 @@ open Applicative_signatures_intf
 
     The representation is exposed, but not intended to be used directly. *)
 type ('inner, 'outer, 'kind) t =
-  { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t
-  }
+  { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t }
 [@@unboxed]
 
 (** Accessors are commonly not indexed and don't need to support polymorphic updates. In
@@ -515,8 +514,7 @@ module Applicative : sig
     Applicative_s with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
 
   module type S2 =
-    Applicative_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Applicative_s2 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
 end
 
 module Applicative_without_return : sig
@@ -809,9 +807,7 @@ val field
 (** [field'] is the same as [field], just with a slightly different interface. [field]
     is usually more convenient to use, but [field'] can be useful to allow [get] and
     [set] to share the computation of finding the location to modify. *)
-val field'
-  :  ('at -> 'a * ('b -> 'bt))
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< field ]) t
+val field' : ('at -> 'a * ('b -> 'bt)) -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< field ]) t
 
 (** A [Field.t] is sufficient to define a field accessor, but the resulting accessor
     might not be as polymorphic as it could have been if defined by hand or using
