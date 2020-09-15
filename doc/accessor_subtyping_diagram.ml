@@ -247,9 +247,9 @@ module Named_kind = struct
     | Mapper -> [ "map"; "set" ]
     | Nonempty -> []
     | Nonempty_getter -> [ "map_reduce_nonempty" ]
-    | Optional -> []
+    | Optional -> [ "match_" ]
     | Optional_getter -> [ "get_option" ]
-    | Variant -> [ "match_" ]
+    | Variant -> []
   ;;
 
   let label t =

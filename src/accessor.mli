@@ -7,25 +7,31 @@ open Applicative_signatures_intf
 
 (** {1 Types} *)
 
-(** Here is a summary of the type parameters in [(i -> a -> b, it -> at -> bt, c)
-    Accessor.t]:
+module General : sig
+  (** Here is a summary of the type parameters in [(i -> a -> b, it -> at -> bt, c)
+      Accessor.General.t]:
 
-    - [i] is the output index type
-    - [a] is the type of value that is read
-    - [b] is the type of value that is written
-    - [it] is the input index type
-    - [at] is the type of value that is read from
-    - [bt] is the type of value resulting from a write
-    - [c] is the kind of accessor
+      - [i] is the output index type
+      - [a] is the type of value that is read
+      - [b] is the type of value that is written
+      - [it] is the input index type
+      - [at] is the type of value that is read from
+      - [bt] is the type of value resulting from a write
+      - [c] is the kind of accessor
 
-    The representation is exposed, but not intended to be used directly. *)
-type ('inner, 'outer, 'kind) t =
-  { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t }
-[@@unboxed]
+      This is the most general way to express the type of an accessor. For many cases,
+      [Accessor.t] or [Accessor.Indexed.t] will suffice.
+
+      The representation is exposed, but not intended to be used directly. *)
+  type ('inner, 'outer, 'kind) t =
+    { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t
+    }
+  [@@unboxed]
+end
 
 (** Accessors are commonly not indexed and don't need to support polymorphic updates. In
-    such cases, it may be easier to read and write types in terms of [Simple.t]. Here is
-    an example where the improvement by using [Simple.t] is significant:
+    such cases, it may be easier to read and write types in terms of [t] instead of
+    [General.t]. Here is an example where the improvement by using [t] is significant:
 
     {[
       val date_ofday
@@ -33,7 +39,7 @@ type ('inner, 'outer, 'kind) t =
         -> ( 'i -> Date.t * Time.Ofday.t -> Date.t * Time.Ofday.t
            , 'i -> Time.t -> Time.t
            , [< isomorphism] )
-             Accessor.t
+             Accessor.General.t
     ]}
 
     It is more cleanly written like this:
@@ -41,12 +47,10 @@ type ('inner, 'outer, 'kind) t =
     {[
       val date_ofday
         :  Time.Zone.t
-        -> (_, Date.t * Time.Ofday.t, Time.t, [< isomorphism]) Accessor.Simple.t
+        -> (_, Date.t * Time.Ofday.t, Time.t, [< isomorphism]) Accessor.t
     ]} *)
-module Simple : sig
-  type nonrec ('index, 'inner, 'outer, 'kind) t =
-    ('index -> 'inner -> 'inner, 'index -> 'outer -> 'outer, 'kind) t
-end
+type ('index, 'inner, 'outer, 'kind) t =
+  ('index -> 'inner -> 'inner, 'index -> 'outer -> 'outer, 'kind) General.t
 
 (** To use [Accessor] in your own code, it is recommended to add the following to your
     import.ml:
@@ -81,45 +85,52 @@ module O : sig
 
       The non-operator name is [Accessor.compose]. *)
   val ( @> )
-    :  ('middle, 'outer, 'kind) t
-    -> ('inner, 'middle, 'kind) t
-    -> ('inner, 'outer, 'kind) t
+    :  ('middle, 'outer, 'kind) General.t
+    -> ('inner, 'middle, 'kind) General.t
+    -> ('inner, 'outer, 'kind) General.t
 
   (** [x.@(t)] extracts a single value from [x] as identified by [t]. The non-operator
       name is [Accessor.get]. *)
-  val ( .@() ) : 'at -> (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> getter ]) t -> 'a
+  val ( .@() )
+    :  'at
+    -> (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> getter ]) General.t
+    -> 'a
 
   (** [x.@?(t)] extracts at most one value from [x] as identified by [t]. The
       non-operator name is [Accessor.get_option]. *)
   val ( .@?() )
     :  'at
-    -> (unit -> 'a -> _, unit -> 'at -> _, [> optional_getter ]) t
+    -> (unit -> 'a -> _, unit -> 'at -> _, [> optional_getter ]) General.t
     -> 'a option
 
   (** [x.@*(t)] extracts any number of values from [x] as identified by [t]. The
       non-operator name is [Accessor.to_list]. *)
   val ( .@*() )
     :  'at
-    -> (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+    -> (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
     -> 'a list
 
   (** [x.@(t) <- y] replaces any number of values in [x] with [y], as identified by [t].
       The non-operator name is [Accessor.set]. *)
-  val ( .@()<- ) : 'at -> (_ -> _ -> 'b, unit -> 'at -> 'bt, [> mapper ]) t -> 'b -> 'bt
+  val ( .@()<- )
+    :  'at
+    -> (_ -> _ -> 'b, unit -> 'at -> 'bt, [> mapper ]) General.t
+    -> 'b
+    -> 'bt
 end
 
 include module type of O (** @inline *)
 
 (** [id] can be used as any kind of accessor. It is also the only way to summon an
     [equality]. *)
-val id : ('a, 'a, _) t
+val id : ('a, 'a, _) General.t
 
 (** [compose] is the same as [( @> )]. See the documentation of [( @> )] for more
     information. *)
 val compose
-  :  ('middle, 'outer, 'kind) t
-  -> ('inner, 'middle, 'kind) t
-  -> ('inner, 'outer, 'kind) t
+  :  ('middle, 'outer, 'kind) General.t
+  -> ('inner, 'middle, 'kind) General.t
+  -> ('inner, 'outer, 'kind) General.t
 
 (** {1 Using accessors} *)
 
@@ -155,6 +166,18 @@ val compose
     ]} *)
 module Index = Index
 
+module Indexed : sig
+  (** Accessors commonly don't need to support polymorphic updates, making [General.t]
+      excessively verbose, but [t] is not useable for indexed accessors. In such cases,
+      you can use [Indexed.t] to reduce some boilerplate. *)
+  type ('index, 'inner, 'outer, 'kind) t =
+    ( 'inner_index * 'outer_index -> 'inner -> 'inner
+    , 'outer_index -> 'outer -> 'outer
+    , 'kind )
+      General.t
+    constraint 'index = 'inner_index * 'outer_index
+end
+
 (** The [Subtyping] module contains all the types used for accessor subtyping. You
     shouldn't have to use it, but it's here for the documentation. *)
 module Subtyping = Subtyping
@@ -164,59 +187,68 @@ module Subtyping = Subtyping
 (** {3 Getting and Folding} *)
 
 (** [get t at] reads a value from [at]. *)
-val get : (unit -> 'a -> _, unit -> 'at -> _, [> getter ]) t -> 'at -> 'a
+val get : (unit -> 'a -> _, unit -> 'at -> _, [> getter ]) General.t -> 'at -> 'a
 
 (** [geti t at] reads a value and its index from [at]. *)
-val geti : ('i -> 'a -> _, unit -> 'at -> _, [> getter ]) t -> 'at -> 'i Index.t * 'a
+val geti
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> getter ]) General.t
+  -> 'at
+  -> 'i Index.t * 'a
 
 (** [get_option t at] reads a value from [at], if present. *)
 val get_option
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> optional_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> optional_getter ]) General.t
   -> 'at
   -> 'a option
 
 (** [get_optioni t at] reads a value and its index from [at], if present. *)
 val get_optioni
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> optional_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> optional_getter ]) General.t
   -> 'at
   -> ('i Index.t * 'a) option
 
 (** [match_ t at] is like [get_option], but in the failure case it may be able to give you
     the input data structure with a different type. *)
 val match_
-  :  (unit -> 'a -> _, unit -> 'at -> 'bt, [> variant ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> 'bt, [> optional ]) General.t
   -> 'at
   -> ('a, 'bt) Either.t
 
 (** An indexed version of [match_]. *)
 val matchi
-  :  ('i -> 'a -> _, unit -> 'at -> 'bt, [> variant ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> 'bt, [> optional ]) General.t
   -> 'at
   -> ('i Index.t * 'a, 'bt) Either.t
 
 (** Extract all the values targetted by an accessor in some composite data structure
     into a list. *)
-val to_list : (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t -> 'at -> 'a list
+val to_list
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
+  -> 'at
+  -> 'a list
 
 (** An indexed version of [to_list]. *)
 val to_listi
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> ('i Index.t * 'a) list
 
 (** Extract all the values targetted by an accessor in some composite data structure
     into an array. *)
-val to_array : (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t -> 'at -> 'a array
+val to_array
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
+  -> 'at
+  -> 'a array
 
 (** An indexed version of [to_array]. *)
 val to_arrayi
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> ('i Index.t * 'a) array
 
 (** Fold across all the values targetted by an accessor with an accumulator. *)
 val fold
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> init:'acc
   -> f:('acc -> 'a -> 'acc)
@@ -224,7 +256,7 @@ val fold
 
 (** Indexed version of fold. *)
 val foldi
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> init:'acc
   -> f:('i Index.t -> 'acc -> 'a -> 'acc)
@@ -233,29 +265,32 @@ val foldi
 (** Iterate over all the values targetted by an accessor, applying the function argument
     to each one. *)
 val iter
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('a -> unit)
   -> unit
 
 (** An indexed version of [iter]. *)
 val iteri
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('i Index.t -> 'a -> unit)
   -> unit
 
 (** [length t at] returns the number of targets in [at]. *)
-val length : (unit -> _ -> _, unit -> 'at -> _, [> many_getter ]) t -> 'at -> int
+val length : (unit -> _ -> _, unit -> 'at -> _, [> many_getter ]) General.t -> 'at -> int
 
 (** [is_empty t at] is [true] iff there are no targets in [at]. *)
-val is_empty : (unit -> _ -> _, unit -> 'at -> _, [> many_getter ]) t -> 'at -> bool
+val is_empty
+  :  (unit -> _ -> _, unit -> 'at -> _, [> many_getter ]) General.t
+  -> 'at
+  -> bool
 
 (** [sum (module Summable) t at ~f] returns the sum of [f a] for all targets [a] in
     [at]. *)
 val sum
   :  (module Container.Summable with type t = 'sum)
-  -> (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  -> (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('a -> 'sum)
   -> 'sum
@@ -263,7 +298,7 @@ val sum
 (** [sumi] is the indexed version of [sum]. *)
 val sumi
   :  (module Container.Summable with type t = 'sum)
-  -> ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  -> ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('i Index.t -> 'a -> 'sum)
   -> 'sum
@@ -271,14 +306,14 @@ val sumi
 (** [count t at ~f] returns the number of targets in [at] for which [f] evaluates to
     true. *)
 val count
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('a -> bool)
   -> int
 
 (** [counti] is the indexed version of [count]. *)
 val counti
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('i Index.t -> 'a -> bool)
   -> int
@@ -286,14 +321,14 @@ val counti
 (** [exists t at ~f] returns [true] iff there is a target in [at] for which [f] returns
     [true]. This is a short-circuiting operation. *)
 val exists
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('a -> bool)
   -> bool
 
 (** [existsi] is the indexed version of [exists]. *)
 val existsi
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('i Index.t -> 'a -> bool)
   -> bool
@@ -301,28 +336,28 @@ val existsi
 (** [for_all t at ~f] returns [true] iff [f] returns [true] for all targets in [at].
     This is a short-circuiting operation. *)
 val for_all
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('a -> bool)
   -> bool
 
 (** [for_alli] is the indexed version of [for_all]. *)
 val for_alli
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('i Index.t -> 'a -> bool)
   -> bool
 
 (** [find_map] returns the first evaluation of [f] that returns [Some]. *)
 val find_map
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('a -> 'b option)
   -> 'b option
 
 (** [find_mapi] is the indexed version of [find_map]. *)
 val find_mapi
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('i Index.t -> 'a -> 'b option)
   -> 'b option
@@ -330,14 +365,14 @@ val find_mapi
 (** [find t at ~f] returns the first target in [at] for which the evaluation of [f]
     returns [true]. *)
 val find
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('a -> bool)
   -> 'a option
 
 (** [findi] is the indexed version of [find]. *)
 val findi
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> f:('i Index.t -> 'a -> bool)
   -> ('i Index.t * 'a) option
@@ -345,7 +380,7 @@ val findi
 (** [min_elt t at ~compare] uses [compare] to compare each target in [at] and returns
     the first target with the smallest value. *)
 val min_elt
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) General.t
   -> 'at
   -> compare:('a -> 'a -> int)
   -> 'a
@@ -353,7 +388,7 @@ val min_elt
 (** [min_elt_option t at ~compare] uses [compare] to compare each target in [at] and
     returns the first target with the smallest value, if any. *)
 val min_elt_option
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> compare:('a -> 'a -> int)
   -> 'a option
@@ -361,7 +396,7 @@ val min_elt_option
 (** [max_elt t at ~compare] uses [compare] to compare each target in [at] and returns
     the first target with the largest value. *)
 val max_elt
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) General.t
   -> 'at
   -> compare:('a -> 'a -> int)
   -> 'a
@@ -369,29 +404,29 @@ val max_elt
 (** [max_elt_option t at ~compare] uses [compare] to compare each target in [at] and
     returns the first target with the largest value, if any. *)
 val max_elt_option
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> compare:('a -> 'a -> int)
   -> 'a option
 
 (** [hd t at] returns the first targetted element of [at]. *)
-val hd : (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) t -> 'at -> 'a
+val hd : (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) General.t -> 'at -> 'a
 
 (** An indexed version of [hd]. *)
 val hdi
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) General.t
   -> 'at
   -> 'i Index.t * 'a
 
 (** [hd_option t at] returns the first targetted element of [at], if any. *)
 val hd_option
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> 'a option
 
 (** An indexed version of [hd_option]. *)
 val hd_optioni
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> ('i Index.t * 'a) option
 
@@ -403,7 +438,7 @@ val hd_optioni
     - [combine a empty = a]
     - [combine (combine a b) c = combine a (combine b c)] *)
 val map_reduce
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> empty:'r
   -> combine:('r -> 'r -> 'r)
@@ -412,18 +447,32 @@ val map_reduce
 
 (** An indexed version of [map_reduce]. *)
 val map_reducei
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
   -> 'at
   -> empty:'r
   -> combine:('r -> 'r -> 'r)
   -> f:('i Index.t -> 'a -> 'r)
   -> 'r
 
+(** [reduce t at ~empty ~combine] combines all accessed values in [at] using [combine].
+    The result is [empty] if there were no values accessed. [empty] and [combine] are
+    expected to satisfy the following properties:
+
+    - [combine empty a = a]
+    - [combine a empty = a]
+    - [combine (combine a b) c = combine a (combine b c)] *)
+val reduce
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) General.t
+  -> 'at
+  -> empty:'a
+  -> combine:('a -> 'a -> 'a)
+  -> 'a
+
 (** [map_reduce_nonempty t at ~combine ~f] applies [f] to each targetted value in [at]
     and combines the results using [combine]. [combine] is expected to satisfy the
     property: [combine (combine a b) c = combine a (combine b c)]. *)
 val map_reduce_nonempty
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) General.t
   -> 'at
   -> combine:('r -> 'r -> 'r)
   -> f:('a -> 'r)
@@ -431,25 +480,34 @@ val map_reduce_nonempty
 
 (** An indexed version of [map_reduce_nonempty]. *)
 val map_reduce_nonemptyi
-  :  ('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) t
+  :  ('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) General.t
   -> 'at
   -> combine:('r -> 'r -> 'r)
   -> f:('i Index.t -> 'a -> 'r)
   -> 'r
+
+(** [reduce_nonempty t at ~combine] combines all accessed values in [at] using [combine].
+    [combine] is expected to satisfy the property: [combine (combine a b) c = combine a
+    (combine b c)]. *)
+val reduce_nonempty
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) General.t
+  -> 'at
+  -> combine:('a -> 'a -> 'a)
+  -> 'a
 
 (** {3 Modifying} *)
 
 (** [map t at ~f] applies [f] to each targetted value inside [at], replacing it with the
     result. *)
 val map
-  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> mapper ]) t
+  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> mapper ]) General.t
   -> 'at
   -> f:('a -> 'b)
   -> 'bt
 
 (** [mapi] is the indexed version of [map]. *)
 val mapi
-  :  ('i -> 'a -> 'b, unit -> 'at -> 'bt, [> mapper ]) t
+  :  ('i -> 'a -> 'b, unit -> 'at -> 'bt, [> mapper ]) General.t
   -> 'at
   -> f:('i Index.t -> 'a -> 'b)
   -> 'bt
@@ -457,7 +515,7 @@ val mapi
 (** [folding_map] is a version of [map] that threads an accumulator through calls to
     [f]. *)
 val folding_map
-  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) t
+  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) General.t
   -> 'at
   -> init:'acc
   -> f:('acc -> 'a -> 'acc * 'b)
@@ -465,7 +523,7 @@ val folding_map
 
 (** [folding_mapi] is the indexed version of [folding_map]. *)
 val folding_mapi
-  :  ('i -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) t
+  :  ('i -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) General.t
   -> 'at
   -> init:'acc
   -> f:('i Index.t -> 'acc -> 'a -> 'acc * 'b)
@@ -474,7 +532,7 @@ val folding_mapi
 (** [fold_map] is a combination of [fold] and [map] that threads an accumulator through
     calls to [f]. *)
 val fold_map
-  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) t
+  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) General.t
   -> 'at
   -> init:'acc
   -> f:('acc -> 'a -> 'acc * 'b)
@@ -482,14 +540,18 @@ val fold_map
 
 (** [fold_mapi] is the indexed version of [fold_map]. *)
 val fold_mapi
-  :  ('i -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) t
+  :  ('i -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) General.t
   -> 'at
   -> init:'acc
   -> f:('i Index.t -> 'acc -> 'a -> 'acc * 'b)
   -> 'acc * 'bt
 
 (** [set t at ~to_] replaces targetted values inside [at] with [to_]. *)
-val set : (_ -> _ -> 'b, unit -> 'at -> 'bt, [> mapper ]) t -> 'at -> to_:'b -> 'bt
+val set
+  :  (_ -> _ -> 'b, unit -> 'at -> 'bt, [> mapper ]) General.t
+  -> 'at
+  -> to_:'b
+  -> 'bt
 
 (** {3 Monadic and Applicative functions} *)
 
@@ -500,35 +562,40 @@ val set : (_ -> _ -> 'b, unit -> 'at -> 'bt, [> mapper ]) t -> 'at -> to_:'b -> 
 
 module Functor : sig
   module type S =
-    Functor_s with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Functor_s
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
-    Functor_s2 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Functor_s2
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
-    Functor_s3 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Functor_s3
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative : sig
   module type S =
-    Applicative_s with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Applicative_s
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
-    Applicative_s2 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Applicative_s2
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative_without_return : sig
   module type S =
     Applicative_without_return_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Applicative_without_return_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Applicative_without_return_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 (** The monad signatures differ from the applicative ones in that some of the functions
@@ -538,24 +605,26 @@ end
     the results are combined. *)
 module Monad : sig
   module type S =
-    Monad_s with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Monad_s
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
-    Monad_s2 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Monad_s2
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Monad_without_return : sig
   module type S =
     Monad_without_return_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Monad_without_return_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Monad_without_return_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 (** {4 Functors} *)
@@ -691,7 +760,7 @@ module Of_monad_without_return3 (A : sig
     the bottom up in one pass. [t] is used to find the children at each level, where the
     children are expected to have the same type as their parent. *)
 val transform
-  :  (unit -> 'a -> 'b, unit -> 'a -> 'b, [> mapper ]) t
+  :  (unit -> 'a -> 'b, unit -> 'a -> 'b, [> mapper ]) General.t
   -> 'a
   -> f:('b -> 'b)
   -> 'b
@@ -701,7 +770,7 @@ val transform
     each time a rule is applied successfully. [t] is used to find the children at each
     level, where the children are expected to have the same type as their parent. *)
 val rewrite
-  :  (unit -> 'a -> 'b, unit -> 'a -> 'b, [> mapper ]) t
+  :  (unit -> 'a -> 'b, unit -> 'a -> 'b, [> mapper ]) General.t
   -> 'a
   -> f:('b -> 'a option)
   -> 'b
@@ -719,14 +788,14 @@ end
 (** An equality is more powerful even than an isomorphism. It can be used to prove that
     the types are equal using the [identical] function. *)
 val identical
-  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> equality ]) t
+  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> equality ]) General.t
   -> ('a, 'b, 'at, 'bt) Identical.t
 
 (** {3 Construction} *)
 
 (** [construct] goes the opposite way to most access patterns. It allows you to
     construct a composite data structure without reading from one. *)
-val construct : (_ -> _ -> 'b, _ -> _ -> 'bt, [> constructor ]) t -> 'b -> 'bt
+val construct : (_ -> _ -> 'b, _ -> _ -> 'bt, [> constructor ]) General.t -> 'b -> 'bt
 
 (** {1 Custom mappings} *)
 
@@ -749,7 +818,7 @@ val construct : (_ -> _ -> 'b, _ -> _ -> 'bt, [> constructor ]) t -> 'b -> 'bt
 
 include
   Custom_mappings_intf.S
-  with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+  with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 (** @inline *)
 
 (** {1 Creating accessors} *)
@@ -802,30 +871,32 @@ include
 val field
   :  get:('at -> 'a)
   -> set:('at -> 'b -> 'bt)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< field ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< field ]) General.t
 
 (** [field'] is the same as [field], just with a slightly different interface. [field]
     is usually more convenient to use, but [field'] can be useful to allow [get] and
     [set] to share the computation of finding the location to modify. *)
-val field' : ('at -> 'a * ('b -> 'bt)) -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< field ]) t
+val field'
+  :  ('at -> 'a * ('b -> 'bt))
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< field ]) General.t
 
 (** A [Field.t] is sufficient to define a field accessor, but the resulting accessor
     might not be as polymorphic as it could have been if defined by hand or using
     [@@deriving accessor]. *)
 val of_field
   :  ([> `Set_and_create ], 'r, 'a) Base.Field.t_with_perm
-  -> ('i -> 'a -> 'a, 'i -> 'r -> 'r, [< field ]) t
+  -> ('i -> 'a -> 'a, 'i -> 'r -> 'r, [< field ]) General.t
 
 (** [fieldi] is the indexed version of [field]. *)
 val fieldi
   :  get:('at -> 'i * 'a)
   -> set:('at -> 'b -> 'bt)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< field ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< field ]) General.t
 
 (** [fieldi'] is the indexed version of [field']. *)
 val fieldi'
   :  ('at -> 'i * 'a * ('b -> 'bt))
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< field ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< field ]) General.t
 
 (** A [Field.t] is sufficient to define an indexed field accessor, where the index is
     the name of the field as a string. The resulting accessor might not be as
@@ -833,7 +904,7 @@ val fieldi'
 *)
 val of_fieldi
   :  ([> `Set_and_create ], 'r, 'a) Base.Field.t_with_perm
-  -> (string * 'it -> 'a -> 'a, 'it -> 'r -> 'r, [< field ]) t
+  -> (string * 'it -> 'a -> 'a, 'it -> 'r -> 'r, [< field ]) General.t
 
 (** {3 Variant accessors} *)
 
@@ -848,13 +919,13 @@ val of_fieldi
 val variant
   :  match_:('at -> ('a, 'bt) Either.t)
   -> construct:('b -> 'bt)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< variant ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< variant ]) General.t
 
 (** [varianti] is the indexed version of [variant]. *)
 val varianti
   :  match_:('at -> ('i * 'a, 'bt) Either.t)
   -> construct:('b -> 'bt)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< variant ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< variant ]) General.t
 
 (** {3 Optional accessors} *)
 
@@ -869,37 +940,37 @@ val varianti
 val optional
   :  match_:('at -> ('a, 'bt) Either.t)
   -> set:('at -> 'b -> 'bt)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< optional ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< optional ]) General.t
 
 (** [optional'] is the same as [optional], just with a slightly different interface.
     [optional] is usually more convenient to use, but [optional'] can be useful to allow
     [match_] and [set] to share the computation of finding the location to modify. *)
 val optional'
   :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< optional ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< optional ]) General.t
 
 (** [optionali] is the indexed version of [optional]. *)
 val optionali
   :  match_:('at -> ('i * 'a, 'bt) Either.t)
   -> set:('at -> 'b -> 'bt)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< optional ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< optional ]) General.t
 
 (** [optionali'] is the indexed version of [optional']. *)
 val optionali'
   :  ('at -> ('i * 'a * ('b -> 'bt), 'bt) Either.t)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< optional ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< optional ]) General.t
 
 (** [filter_index predicate] accesses the entire value if its index satisfies
     [predicate], otherwise it accesses nothing. Compose it with a many accessor to
     access a subset of values. *)
 val filter_index
   :  ('i Index.t -> bool)
-  -> ('i -> 'a -> 'a, 'i -> 'a -> 'a, [< optional ]) t
+  -> ('i -> 'a -> 'a, 'i -> 'a -> 'a, [< optional ]) General.t
 
 (** [filter_map_index f] is like [filter_index], but it can also modify the indices. *)
 val filter_map_index
   :  ('i Index.t -> 'j Index.t option)
-  -> ('j -> 'a -> 'a, 'i -> 'a -> 'a, [< optional ]) t
+  -> ('j -> 'a -> 'a, 'i -> 'a -> 'a, [< optional ]) General.t
 
 (** {3 Isomorphism accessors} *)
 
@@ -912,19 +983,19 @@ val filter_map_index
 val isomorphism
   :  get:('at -> 'a)
   -> construct:('b -> 'bt)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< isomorphism ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< isomorphism ]) General.t
 
 (** [isomorphismi] is the indexed version of [isomorphism]. *)
 val isomorphismi
   :  get:('at -> 'i * 'a)
   -> construct:('b -> 'bt)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< isomorphism ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< isomorphism ]) General.t
 
 (** [map_index f] applies [f] to the the indices that pass through it in a chain of
     composed accessors. *)
 val map_index
   :  ('i Index.t -> 'j Index.t)
-  -> ('j -> 'a -> 'b, 'i -> 'a -> 'b, [< isomorphism ]) t
+  -> ('j -> 'a -> 'b, 'i -> 'a -> 'b, [< isomorphism ]) General.t
 
 (** {3 Mapper accessors} *)
 
@@ -936,12 +1007,12 @@ val map_index
     - [map at ~f:(Fn.compose f g) = map (map at ~f:g) ~f] *)
 val mapper
   :  ('at -> f:('a -> 'b) -> 'bt)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< mapper ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< mapper ]) General.t
 
 (** [mapperi] is the indexed version of [mapper]. *)
 val mapperi
   :  ('at -> f:('i -> 'a -> 'b) -> 'bt)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< mapper ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< mapper ]) General.t
 
 (** {3 Many accessors} *)
 
@@ -974,12 +1045,12 @@ val mapperi
     ]} *)
 val many
   :  ('at -> ('bt, 'a, 'b) Many.t)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< many ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< many ]) General.t
 
 (** [manyi] is the indexed version of [many]. *)
 val manyi
   :  ('at -> ('bt, 'i * 'a, 'b) Many.t)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< many ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< many ]) General.t
 
 (** {3 Nonempty accessors} *)
 
@@ -1022,22 +1093,24 @@ val manyi
     ]} *)
 val nonempty
   :  ('at -> ('bt, 'a, 'b) Nonempty.t)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< nonempty ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< nonempty ]) General.t
 
 (** [nonemptyi] is the indexed version of [nonempty]. *)
 val nonemptyi
   :  ('at -> ('bt, 'i * 'a, 'b) Nonempty.t)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< nonempty ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< nonempty ]) General.t
 
 (** {3 Getter accessors} *)
 
 (** [getter get] creates a getter accessor. A getter reads exactly one value from a
     composite data structure. There are no properties necessary for a getter to be well
     behaved. *)
-val getter : ('at -> 'a) -> ('i -> 'a -> _, 'i -> 'at -> _, [< getter ]) t
+val getter : ('at -> 'a) -> ('i -> 'a -> _, 'i -> 'at -> _, [< getter ]) General.t
 
 (** [getteri] is the indexed version of [getter]. *)
-val getteri : ('at -> 'i * 'a) -> ('i * 'it -> 'a -> _, 'it -> 'at -> _, [< getter ]) t
+val getteri
+  :  ('at -> 'i * 'a)
+  -> ('i * 'it -> 'a -> _, 'it -> 'at -> _, [< getter ]) General.t
 
 (** {3 Optional getter accessors} *)
 
@@ -1046,12 +1119,12 @@ val getteri : ('at -> 'i * 'a) -> ('i * 'it -> 'a -> _, 'it -> 'at -> _, [< gett
     for an optional getter to be well behaved. *)
 val optional_getter
   :  ('at -> 'a option)
-  -> ('i -> 'a -> _, 'i -> 'at -> _, [< optional_getter ]) t
+  -> ('i -> 'a -> _, 'i -> 'at -> _, [< optional_getter ]) General.t
 
 (** [optional_getteri] is the indexed version of [optional_getter]. *)
 val optional_getteri
   :  ('at -> ('i * 'a) option)
-  -> ('i * 'it -> 'a -> _, 'it -> 'at -> _, [< optional_getter ]) t
+  -> ('i * 'it -> 'a -> _, 'it -> 'at -> _, [< optional_getter ]) General.t
 
 (** {3 Many getter accessors} *)
 
@@ -1071,12 +1144,12 @@ val optional_getteri
     ]} *)
 val many_getter
   :  ('at -> 'a Many_getter.t)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< many_getter ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< many_getter ]) General.t
 
 (** [many_getteri] is the indexed version of [many_getter]. *)
 val many_getteri
   :  ('at -> ('i * 'a) Many_getter.t)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< many_getter ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< many_getter ]) General.t
 
 (** {3 Nonempty getter accessors} *)
 
@@ -1102,45 +1175,45 @@ val many_getteri
 *)
 val nonempty_getter
   :  ('at -> 'a Nonempty_getter.t)
-  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< nonempty_getter ]) t
+  -> ('i -> 'a -> 'b, 'i -> 'at -> 'bt, [< nonempty_getter ]) General.t
 
 (** [nonempty_getteri] is the indexed version of [nonempty_getter]. *)
 val nonempty_getteri
   :  ('at -> ('i * 'a) Nonempty_getter.t)
-  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< nonempty_getter ]) t
+  -> ('i * 'it -> 'a -> 'b, 'it -> 'at -> 'bt, [< nonempty_getter ]) General.t
 
 (** {3 Constructor accessors} *)
 
 (** [constructor construct] creates a constructor accessor. A constructor creates a
     composite data structure from an argument. There are no properties necessary for a
     constructor to be well behaved. *)
-val constructor : ('b -> 'bt) -> (_ -> _ -> 'b, _ -> _ -> 'bt, [< constructor ]) t
+val constructor : ('b -> 'bt) -> (_ -> _ -> 'b, _ -> _ -> 'bt, [< constructor ]) General.t
 
 (** A [Variant.t] is not sufficient to define a variant accessor, but is at least
     sufficient to define a constructor accessor. *)
 val of_variant
   :  ('b -> 'bt) Base.Variant.t
-  -> (_ -> _ -> 'b, _ -> _ -> 'bt, [< constructor ]) t
+  -> (_ -> _ -> 'b, _ -> _ -> 'bt, [< constructor ]) General.t
 
 (** {1 Transforming accessors} *)
 
 (** Turn an isomorphism around. [invert (isomorphism ~get:f ~construct:g)] is
     [isomorphism ~get:g ~construct:f]. *)
 val invert
-  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> isomorphism ]) t
-  -> ('i -> 'bt -> 'at, 'i -> 'b -> 'a, [< isomorphism ]) t
+  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> isomorphism ]) General.t
+  -> ('i -> 'bt -> 'at, 'i -> 'b -> 'a, [< isomorphism ]) General.t
 
 (** Turn a getter into a constructor. [getter_to_constructor (getter f)] is [constructor
     f]. *)
 val getter_to_constructor
-  :  (unit -> 'a -> _, unit -> 'at -> _, [> getter ]) t
-  -> (_ -> _ -> 'at, _ -> _ -> 'a, [< constructor ]) t
+  :  (unit -> 'a -> _, unit -> 'at -> _, [> getter ]) General.t
+  -> (_ -> _ -> 'at, _ -> _ -> 'a, [< constructor ]) General.t
 
 (** Turn a constructor into a getter. [constructor_to_getter (constructor f)] is [getter
     f]. *)
 val constructor_to_getter
-  :  (_ -> _ -> 'b, _ -> _ -> 'bt, [> constructor ]) t
-  -> ('i -> 'bt -> _, 'i -> 'b -> _, [< getter ]) t
+  :  (_ -> _ -> 'b, _ -> _ -> 'bt, [> constructor ]) General.t
+  -> ('i -> 'bt -> _, 'i -> 'b -> _, [< getter ]) General.t
 
 (** Given a [many] accessor, generate a [field] accessor that accesses all the elements
     that would be accessed by the [many] accessor in the form of a list. When replacing,
@@ -1149,6 +1222,4 @@ val constructor_to_getter
 
     The resulting accessor is only well-behaved if you preserve the length of the list
     across getting and setting. *)
-val many_to_list_field
-  :  (unit, 'a, 'at, [> many ]) Simple.t
-  -> (_, 'a list, 'at, [< field ]) Simple.t
+val many_to_list_field : (unit, 'a, 'at, [> many ]) t -> (_, 'a list, 'at, [< field ]) t

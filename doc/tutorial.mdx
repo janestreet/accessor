@@ -141,13 +141,11 @@ representative enough for teaching purposes.
 The type of a `field`
 ---------------------
 
-`Accessor.t` only has three arguments, but the arguments are
-structured. Here are simplified types for a couple fields we have
-already seen:
+Here are the types for a couple fields we have already seen:
 
 ```ocaml
-let location : (_, coordinate, cell,       [< field ]) Accessor.Simple.t = location
-let col      : (_, int,        coordinate, [< field ]) Accessor.Simple.t = col
+let location : (_, coordinate, cell,       [< field ]) Accessor.t = location
+let col      : (_, int,        coordinate, [< field ]) Accessor.t = col
 ```
 
 The `location` accessor is a field containing the information needed
@@ -156,13 +154,13 @@ a `coordinate`. The `col` accessor is a field containing the
 information needed to get or set the `col` record field of the
 `coordinate` type, which is an `int`.
 
-`Accessor.Simple.t` is a type alias reducing some of the boilerplate
-that often appears when using `Accessor.t`. The first argument of
-`Accessor.Simple.t` is usually left as an underscore. The second
-argument is the type of inner values we are accessing. The third
-argument is the type of the composite data structure we are reaching
-into. The last argument is an indication of what "kind" of accessor it
-is, a `field` in these cases.
+`Accessor.t` is a type alias reducing some of the boilerplate that
+often appears when using `Accessor.General.t`, the actual type of
+accessors. The first argument of `Accessor.t` is usually left as an
+underscore. The second argument is the type of inner values we are
+accessing. The third argument is the type of the composite data
+structure we are reaching into. The last argument is an indication of
+what "kind" of accessor it is, a `field` in these cases.
 
 Here are less simple versions of these accessors' types:
 
@@ -171,24 +169,24 @@ let location
   : ( 'i -> coordinate -> coordinate
     , 'i -> cell       -> cell
     , [< field ]
-    ) Accessor.t
+    ) Accessor.General.t
   = location
 
 let col
   : ( 'i -> int        -> int
     , 'i -> coordinate -> coordinate
     , [< field ]
-    ) Accessor.t
+    ) Accessor.General.t
   = col
 ```
 
-The first two type parameters of an `Accessor.t` are always rendered
-as function types taking two arguments. The first function type
-represents an "inner mapping", and the second function type represents
-an "outer mapping". Disregarding the first arguments of the functions
-(the `'i` in the above examples), one might read the above type of
-`location` as a `field` that transforms a mapping from `coordinate` to
-`coordinate` into a mapping from `cell` to `cell`.
+The first two type parameters of an `Accessor.General.t` are always
+rendered as function types taking two arguments. The first function
+type represents an "inner mapping", and the second function type
+represents an "outer mapping". Disregarding the first arguments of the
+functions (the `'i` in the above examples), one might read the above
+type of `location` as a `field` that transforms a mapping from
+`coordinate` to `coordinate` into a mapping from `cell` to `cell`.
 
 We're using the word "mapping" to try to convey that it is more
 general than a function. The concrete instantiation of the mappings is
@@ -199,7 +197,7 @@ easier to see this by rearranging its type a bit:
 
 ```ocaml
 let map
-  :  (_ -> 'inner -> 'inner,    _ -> 'outer -> 'outer, [> field ]) Accessor.t
+  :  (_ -> 'inner -> 'inner,    _ -> 'outer -> 'outer, [> field ]) Accessor.General.t
   ->      ('inner -> 'inner) ->     ('outer -> 'outer)
   = fun accessor f outer -> Accessor.map accessor outer ~f
 ```
@@ -227,7 +225,7 @@ let get
   :  ( _ ->        'inner -> 'inner
      , _ ->        'outer -> 'outer
      , [> field ]
-     ) Accessor.t
+     ) Accessor.General.t
   ->              ('inner,   'inner, 'result) get_mapping
   ->              ('outer,   'outer, 'result) get_mapping
   = fun accessor f outer -> f (Accessor.get accessor outer)
@@ -238,7 +236,7 @@ by forcing the function argument to be `Fn.id`:
 
 ```ocaml
 let get
-  :  (_ -> 'inner -> 'inner, _ -> 'outer -> 'outer, [> field ]) Accessor.t
+  :  (_ -> 'inner -> 'inner, _ -> 'outer -> 'outer, [> field ]) Accessor.General.t
   -> 'outer
   -> 'inner
   = fun accessor outer -> get accessor Fn.id outer
@@ -285,11 +283,11 @@ Line 7, characters 48-63:
 Error: This expression has type
          (unit -> int -> int, unit -> cell -> cell,
           [< Accessor.field > `at_least_one `at_most_one `get ] as 'a)
-         Accessor.t
+         Accessor.General.t
        but an expression was expected of type
          (unit -> int -> int, unit -> cell -> cell,
           [< Accessor_base__Import.many ] as 'b)
-         Accessor.t
+         Accessor.General.t
        Type
          'a =
            [< `at_least_one | `at_most_one | `get | `map
@@ -364,8 +362,9 @@ The actual type doesn't even look very different:
 ```ocaml
 # #show ( @> )
 val ( @> ) :
-  ('middle, 'outer, 'kind) Accessor.t ->
-  ('inner, 'middle, 'kind) Accessor.t -> ('inner, 'outer, 'kind) Accessor.t
+  ('middle, 'outer, 'kind) Accessor.General.t ->
+  ('inner, 'middle, 'kind) Accessor.General.t ->
+  ('inner, 'outer, 'kind) Accessor.General.t
 ```
 
 Previously, we had defined a new field by composing the `location` and
@@ -376,17 +375,17 @@ of a `cell`:
 # #show location
 val location :
   ('a -> coordinate -> coordinate, 'a -> cell -> cell, [< Accessor.field ])
-  Accessor.t
+  Accessor.General.t
 
 # #show col
 val col :
   ('i -> int -> int, 'i -> coordinate -> coordinate, [< Accessor.field ])
-  Accessor.t
+  Accessor.General.t
 
 # let location_col = [%accessor location @> col]
 val location_col :
-  ('a -> int -> int, 'a -> cell -> cell, [< Accessor.field ]) Accessor.t =
-  {Accessor.f = <fun>}
+  ('a -> int -> int, 'a -> cell -> cell, [< Accessor.field ])
+  Accessor.General.t = {Accessor.General.f = <fun>}
 ```
 
 The resulting accessor is just as useful as the originals and can be
@@ -504,7 +503,7 @@ We've already seen a `many` accessor in examples earlier:
 `Accessor.List.each`. Here is (a specialization of) its type:
 
 ```ocaml
-let each : (_, 'inner, 'outer list, [< many ]) Accessor.Simple.t = Accessor.List.each
+let each : (_, 'inner, 'outer list, [< many ]) Accessor.t = Accessor.List.each
 ```
 
 Every `field` accessor is also a valid `many` accessor, which is what
@@ -515,11 +514,11 @@ demonstration that `location` and `col` can be typechecked as `many`
 accessors without converting explicitly:
 
 ```ocaml
-let location : (_, coordinate, cell, [< many  ]) Accessor.Simple.t =
-   (location : (_, coordinate, cell, [< field ]) Accessor.Simple.t)
+let location : (_, coordinate, cell, [< many  ]) Accessor.t =
+   (location : (_, coordinate, cell, [< field ]) Accessor.t)
 
-let col : (_, int, coordinate, [< many  ]) Accessor.Simple.t =
-   (col : (_, int, coordinate, [< field ]) Accessor.Simple.t)
+let col : (_, int, coordinate, [< many  ]) Accessor.t =
+   (col : (_, int, coordinate, [< field ]) Accessor.t)
 ```
 
 Creating `many` accessors
@@ -539,7 +538,7 @@ accessor of the `row` and `col` fields of a `coordinate`, you could
 write this:
 
 ```ocaml
-let row_and_col : (_, int, coordinate, [< many ]) Accessor.Simple.t =
+let row_and_col : (_, int, coordinate, [< many ]) Accessor.t =
   [%accessor
     Accessor.many (fun { row; col } ->
       let open Accessor.Many.Let_syntax in
@@ -578,16 +577,17 @@ let list_map : ('a -> 'b) -> 'a list -> 'b list =
 ```
 
 It's a function from a mapping `a -> b` to a mapping `a list -> b
-list`. The mappings in the `Accessor.t` type are the same way:
+list`. The mappings in the `Accessor.General.t` type are the same way:
 
 ```ocaml
-let each : (_ -> 'a -> 'b, _ -> 'a list -> 'b list, [< many ]) Accessor.t =
+let each : (_ -> 'a -> 'b, _ -> 'a list -> 'b list, [< many ]) Accessor.General.t =
   Accessor.List.each
 ```
 
-Polymorphic update is the reason `Accessor.t` has so much apparent
-redundancy in its type parameters. The types for accessors supporting
-polymorphic update cannot be written using `Accessor.Simple.t`.
+Polymorphic update is the reason `Accessor.General.t` has so much
+apparent redundancy in its type parameters. The types for accessors
+supporting polymorphic update cannot be written using the simpler
+`Accessor.t`.
 
 Indices
 =======
@@ -669,10 +669,10 @@ we've so far been rendering with underscores. Here are the actual,
 complete types of `Accessor.List.each` and `Accessor.List.eachi`:
 
 ```ocaml
-let each : ('i -> 'a -> 'b, 'i -> 'a list -> 'b list, [< many ]) Accessor.t =
+let each : ('i -> 'a -> 'b, 'i -> 'a list -> 'b list, [< many ]) Accessor.General.t =
   Accessor.List.each
 
-let eachi : (int * 'i -> 'a -> 'b, 'i -> 'a list -> 'b list, [< many ]) Accessor.t =
+let eachi : (int * 'i -> 'a -> 'b, 'i -> 'a list -> 'b list, [< many ]) Accessor.General.t =
   Accessor.List.eachi
 ```
 
@@ -690,7 +690,7 @@ will also be `unit`:
 
 ```ocaml
 let map
-  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) Accessor.t -> 'at
+  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) Accessor.General.t -> 'at
   -> f:('a -> 'b) -> 'bt
   = Accessor.map
 ```
@@ -700,7 +700,7 @@ how the stack is updated:
 
 ```ocaml
 let mapi
-  :  ('i -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) Accessor.t -> 'at
+  :  ('i -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) Accessor.General.t -> 'at
   -> f:('i Accessor.Index.t -> 'a -> 'b) -> 'bt
   = Accessor.mapi
 ```
@@ -757,7 +757,7 @@ cannot be used as a `getter`, which is why `Accessor.get` does not
 work with `Accessor.List.each`.
 
 ```ocaml
-let get : (unit -> 'a -> _, unit -> 'at -> _, [> getter ]) Accessor.t -> 'at -> 'a =
+let get : (unit -> 'a -> _, unit -> 'at -> _, [> getter ]) Accessor.General.t -> 'at -> 'a =
   Accessor.get
 ```
 
@@ -768,7 +768,7 @@ singleton list as a result.
 
 ```ocaml
 let to_list
-  : (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) Accessor.t -> 'at -> 'a list
+  : (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) Accessor.General.t -> 'at -> 'a list
   = Accessor.to_list
 ```
 
@@ -778,7 +778,7 @@ accessors both can be used as `mapper` accessors. However, the read-only accesso
 
 ```ocaml
 let map
-  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> mapper ]) Accessor.t -> 'at
+  :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> mapper ]) Accessor.General.t -> 'at
   -> f:('a -> 'b) -> 'bt
   = Accessor.map
 ```
@@ -810,7 +810,7 @@ support using `Async`:
 ```ocaml
 let map
   :  ?how:[ `Parallel | `Sequential ]
-  -> (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) Accessor.t
+  -> (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) Accessor.General.t
   -> 'at
   -> f:('a -> 'b Deferred.t)
   -> 'bt Deferred.t
@@ -818,7 +818,7 @@ let map
 
 let iter
   :  ?how:[ `Parallel | `Sequential ]
-  -> (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) Accessor.t
+  -> (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) Accessor.General.t
   -> 'at
   -> f:('a -> unit Deferred.t)
   -> unit Deferred.t

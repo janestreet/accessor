@@ -5,13 +5,25 @@ open With_return
 module Index = Index
 module Subtyping = Subtyping
 
-type ('inner, 'outer, 'kind) t =
-  { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t }
-[@@unboxed]
+module General = struct
+  type ('inner, 'outer, 'kind) t =
+    { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t
+    }
+  [@@unboxed]
+end
 
-module Simple = struct
-  type nonrec ('index, 'inner, 'outer, 'kind) t =
-    ('index -> 'inner -> 'inner, 'index -> 'outer -> 'outer, 'kind) t
+open General
+
+type ('index, 'inner, 'outer, 'kind) t =
+  ('index -> 'inner -> 'inner, 'index -> 'outer -> 'outer, 'kind) General.t
+
+module Indexed = struct
+  type ('index, 'inner, 'outer, 'kind) t =
+    ( 'inner_index * 'outer_index -> 'inner -> 'inner
+    , 'outer_index -> 'outer -> 'outer
+    , 'kind )
+      General.t
+    constraint 'index = 'inner_index * 'outer_index
 end
 
 module Prim = struct
@@ -616,7 +628,7 @@ module Prim = struct
     include Equality.Make_access4 (T)
   end
 
-  let identical (type a b at bt) (t : (unit -> a -> b, unit -> at -> bt, _) t)
+  let identical (type a b at bt) (t : (unit -> a -> b, unit -> at -> bt, _) General.t)
     : (a, b, at, bt) Identical.t
     =
     let T = Identical.access t T in
@@ -663,10 +675,13 @@ module Prim = struct
     map_reduce_nonemptyi t at ~combine ~f:(fun [] a -> f a)
   ;;
 
+  let reduce_nonempty t at ~combine = map_reduce_nonempty t at ~combine ~f:Fn.id
+
   let map_reduce t at ~empty ~combine ~f =
     map_reducei t at ~empty ~combine ~f:(fun [] a -> f a)
   ;;
 
+  let reduce t at ~empty ~combine = map_reduce t at ~empty ~combine ~f:Fn.id
   let map t at ~f = mapi t at ~f:(fun [] a -> f a)
 
   let constructor construct =
@@ -932,57 +947,64 @@ include Prim
 
 module Functor = struct
   module type S =
-    Functor_s with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Functor_s
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
-    Functor_s2 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Functor_s2
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
-    Functor_s3 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Functor_s3
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative = struct
   module type S =
-    Applicative_s with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Applicative_s
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
-    Applicative_s2 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Applicative_s2
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative_without_return = struct
   module type S =
     Applicative_without_return_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Applicative_without_return_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Applicative_without_return_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Monad = struct
   module type S =
-    Monad_s with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Monad_s
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
-    Monad_s2 with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    Monad_s2
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Monad_without_return = struct
   module type S =
     Monad_without_return_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Monad_without_return_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Monad_without_return_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Of_applicative2 (A : sig
@@ -1770,12 +1792,12 @@ module Concrete_optional_getter = Optional_getter.Make_access3 (struct
 let get_optioni t at = Concrete_optional_getter.access t Option.some ([], at)
 let get_option t at = Option.map (get_optioni t at) ~f:(fun ([], a) -> a)
 
-module Match_ = Variant.Make_access3 (struct
+module Match_ = Optional.Make_access3 (struct
     type ('at, 'bt, 'a) t = 'at -> ('a, 'bt) Either.t
 
-    let variant ~match_ ~construct t att =
+    let optional match_ t att =
       match match_ att with
-      | Either.First at ->
+      | Either.First (at, construct) ->
         (match t at with
          | Either.First _ as a -> a
          | Second b -> Second (construct b))
