@@ -16,12 +16,14 @@ module Make4 (T : sig
   include Hk.S4 with type ('a, 'b, 'c, 'd) t := ('a, 'b, 'c, 'd) T.t
 
   val projected
-    :  ('a, 'b, 'c, 'd) witness
+    :  ('a, 'b, 'c, 'd, higher_kinded) Higher_kinded.t4
     -> f:(('a, 'b, 'c, 'd) T.t -> ('e, 'f, 'g, 'h) T.t)
-    -> ('e, 'f, 'g, 'h) witness
+    -> ('e, 'f, 'g, 'h, higher_kinded) Higher_kinded.t4
 
   val injected
     :  ('a Index.t * 'b, 'c, 'd, 'e) T.t
-    -> f:(('a -> 'b -> 'c, ('d, 'e) witness2) t -> ('f -> 'g -> 'h, ('i, 'j) witness2) t)
+    -> f:
+         (('a -> 'b -> 'c, 'd -> 'e -> higher_kinded) t
+          -> ('f -> 'g -> 'h, 'i -> 'j -> higher_kinded) t)
     -> ('f Index.t * 'g, 'h, 'i, 'j) T.t
 end

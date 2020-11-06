@@ -3,15 +3,15 @@ open! Import
 
 module Applicative = struct
   type 'w t =
-    { return : 'a. 'a -> ('a, 'w) Hk.t
-    ; map : 'a 'b. ('a, 'w) Hk.t -> f:('a -> 'b) -> ('b, 'w) Hk.t
-    ; apply : 'a 'b. ('a -> 'b, 'w) Hk.t -> ('a, 'w) Hk.t -> ('b, 'w) Hk.t
+    { return : 'a. 'a -> ('a, 'w) Hk.t1
+    ; map : 'a 'b. ('a, 'w) Hk.t1 -> f:('a -> 'b) -> ('b, 'w) Hk.t1
+    ; apply : 'a 'b. ('a -> 'b, 'w) Hk.t1 -> ('a, 'w) Hk.t1 -> ('b, 'w) Hk.t1
     }
 end
 
 module T = struct
   type ('bt, 'a, 'b) t =
-    { f : 'w. 'w Applicative.t -> access:('a -> ('b, 'w) Hk.t) -> ('bt, 'w) Hk.t }
+    { f : 'w. 'w Applicative.t -> access:('a -> ('b, 'w) Hk.t1) -> ('bt, 'w) Hk.t1 }
   [@@unboxed]
 
   let access a = { f = (fun _ ~access -> access a) }

@@ -159,6 +159,19 @@ module Run = struct
 
   let equality (_ : _ t) = Fn.id
 
+  (* The [*_hack] type constructors are a way to introduce a "restricted locally abstract
+     type variable". Imagine if one could both declare a locally abstract variable: {[
+
+       let constructor (type a) (t : (a, 'w) t) =
+
+     ]} and also constrain its type: {[
+
+       let constructor (t : ([< constructor ], 'w) t) =
+
+     ]}. The compiler understands this, but OCaml has no concrete syntax to create them
+     directly. Instead we arrange our code so that the type checker chooses to introduce
+     such a variable for us. *)
+
   type 'w constructor_hack =
     | Constructor_hack : ([< constructor ], 'w) t -> 'w constructor_hack
   [@@unboxed]
