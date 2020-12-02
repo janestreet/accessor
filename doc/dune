@@ -1,4 +1,4 @@
-(alias (name DEFAULT)
+(alias (name feature-subtree-build)
  (deps %{workspace_root}/app/make-corrected-file/bin/main.exe
   accessor_subtyping_diagram.exe subtyping.svg)
  (action
