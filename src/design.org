@@ -1,7 +1,3 @@
-#+title: How ~Accessor~ works
-#+author: Jake McArthur
-#+UUID: 266cc918-c1c1-31f1-415c-1073bf3759fa
-#+PARENT: ../README.org
 
 This document aims to bring a developer up to speed for understanding the
 /implementation/ of ~Accessor~. If you are just trying to understand how to use

@@ -1,4 +1,2 @@
-#+title: Applicative_without_return
-#+UUID: 4d668a0f-0c1e-31fd-797f-68dd5908595c
 
 A library with a version of ~Base.Applicative~ which lacks ~return~.

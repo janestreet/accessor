@@ -1,5 +1,3 @@
-#+title: Accessor
-#+UUID: 13d019ea-184c-31ac-131b-6fbfde8ef9ab
 
 The ~Accessor~ library makes it nicer to work with nested functional data
 structures.
