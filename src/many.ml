@@ -44,7 +44,8 @@ module Open_on_rhs_intf = struct
   end
 end
 
-include Base.Applicative.Make_let_syntax3 (T) (Open_on_rhs_intf)
+include
+  Base.Applicative.Make_let_syntax3 (T) (Open_on_rhs_intf)
     (struct
       let access = access
     end)
