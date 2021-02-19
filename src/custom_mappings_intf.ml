@@ -412,6 +412,34 @@ module type S = sig
   module Nonempty : sig
     include module type of Nonempty (** @inline *)
 
+    (** Access everything that the given accessor accesses. *)
+    val access_nonempty
+      :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> nonempty ]) accessor
+      -> 'at
+      -> ('bt, 'a, 'b) t
+
+    module Let_syntax : sig
+      include module type of Nonempty.Let_syntax
+
+      module Let_syntax : sig
+        include module type of Nonempty.Let_syntax.Let_syntax
+
+        module Open_on_rhs : sig
+          include module type of Nonempty.Let_syntax.Let_syntax.Open_on_rhs
+
+          val access_nonempty
+            :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> nonempty ]) accessor
+            -> 'at
+            -> ('bt, 'a, 'b) t
+        end
+      end
+    end
+
+    module Accessor :
+      Applicative_signatures_intf.Applicative_without_return_s3
+      with type ('a, 'd, 'e) t := ('a, 'd, 'e) t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) accessor
+
     module Make_access (T : sig
         type ('a, 'b) t
 
@@ -518,6 +546,34 @@ module type S = sig
 
   module Many : sig
     include module type of Many (** @inline *)
+
+    (** Access everything that the given accessor accesses. *)
+    val access_many
+      :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) accessor
+      -> 'at
+      -> ('bt, 'a, 'b) t
+
+    module Let_syntax : sig
+      include module type of Many.Let_syntax
+
+      module Let_syntax : sig
+        include module type of Many.Let_syntax.Let_syntax
+
+        module Open_on_rhs : sig
+          include module type of Many.Let_syntax.Let_syntax.Open_on_rhs
+
+          val access_many
+            :  (unit -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) accessor
+            -> 'at
+            -> ('bt, 'a, 'b) t
+        end
+      end
+    end
+
+    module Accessor :
+      Applicative_signatures_intf.Applicative_s3
+      with type ('a, 'd, 'e) t := ('a, 'd, 'e) t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) accessor
 
     module Make_access (T : sig
         type ('a, 'b) t

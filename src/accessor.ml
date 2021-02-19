@@ -374,7 +374,7 @@ module Prim = struct
       end)
   end
 
-  module Nonempty = struct
+  module Nonempty0 = struct
     include Nonempty
 
     module Make_access4 (T : sig
@@ -474,7 +474,7 @@ module Prim = struct
       end)
   end
 
-  module Many = struct
+  module Many0 = struct
     include Many
 
     module Make_access4 (T : sig
@@ -967,6 +967,10 @@ module Applicative = struct
   module type S2 =
     Applicative_s2
     with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+
+  module type S3 =
+    Applicative_s3
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative_without_return = struct
@@ -991,6 +995,10 @@ module Monad = struct
   module type S2 =
     Monad_s2
     with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+
+  module type S3 =
+    Monad_s3
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Monad_without_return = struct
@@ -1007,17 +1015,17 @@ module Monad_without_return = struct
     with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
-module Of_applicative2 (A : sig
-    type ('a, 'e) t
+module Of_applicative3 (A : sig
+    type ('a, 'd, 'e) t
 
-    val return : 'a -> ('a, _) t
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
-    val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
-  end) : Applicative.S2 with type ('a, 'e) t := ('a, 'e) A.t = struct
-  include Many.Of_applicative2 (A)
+    val return : 'a -> ('a, _, _) t
+    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+    val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+  end) : Applicative.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t = struct
+  include Many.Of_applicative3 (A)
 
-  module Kleisli = Many.Make_access3 (struct
-      type ('a, 'b, 'e) t = 'a -> ('b, 'e) A.t
+  module Kleisli = Many0.Make_access4 (struct
+      type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) A.t
 
       let many traverse f at = of_many (traverse at) ~access:f
     end)
@@ -1079,6 +1087,19 @@ module Of_applicative2 (A : sig
   let all t at = map t at ~f:Fn.id
 end
 
+module Of_applicative2 (A : sig
+    type ('a, 'e) t
+
+    val return : 'a -> ('a, _) t
+    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+    val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
+  end) =
+  Of_applicative3 (struct
+    type ('a, _, 'e) t = ('a, 'e) A.t
+
+    include (A : module type of A with type ('a, 'e) t := ('a, 'e) A.t)
+  end)
+
 module Of_applicative (A : sig
     type 'a t
 
@@ -1092,20 +1113,22 @@ module Of_applicative (A : sig
     include (A : module type of A with type 'a t := 'a A.t)
   end)
 
-module Of_monad2 (M : sig
-    type ('a, 'e) t
+module Of_monad3 (M : sig
+    type ('a, 'd, 'e) t
 
-    val return : 'a -> ('a, _) t
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+    val return : 'a -> ('a, _, _) t
+    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
 
     val apply
-      : [ `Custom of ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t | `Define_using_bind ]
+      : [ `Custom of ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+        | `Define_using_bind
+        ]
 
-    val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
-  end) : Monad.S2 with type ('a, 'e) t := ('a, 'e) M.t = struct
+    val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
+  end) : Monad.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) M.t = struct
   module Sequential = struct
-    include Of_applicative2 (struct
-        type ('a, 'e) t = unit -> ('a, 'e) M.t
+    include Of_applicative3 (struct
+        type ('a, 'd, 'e) t = unit -> ('a, 'd, 'e) M.t
 
         let return a () = M.return a
         let map t ~f () = M.map (t ()) ~f
@@ -1181,8 +1204,8 @@ module Of_monad2 (M : sig
     ;;
   end
 
-  module Parallel = Of_applicative2 (struct
-      type ('a, 'e) t = ('a, 'e) M.t
+  module Parallel = Of_applicative3 (struct
+      type ('a, 'd, 'e) t = ('a, 'd, 'e) M.t
 
       let return = M.return
       let map = M.map
@@ -1270,6 +1293,23 @@ module Of_monad2 (M : sig
   let all_unit = Parallel.all_unit
 end
 
+module Of_monad2 (M : sig
+    type ('a, 'e) t
+
+    val return : 'a -> ('a, _) t
+    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+
+    val apply
+      : [ `Custom of ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t | `Define_using_bind ]
+
+    val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
+  end) =
+  Of_monad3 (struct
+    type ('a, _, 'e) t = ('a, 'e) M.t
+
+    include (M : module type of M with type ('a, 'e) t := ('a, 'e) M.t)
+  end)
+
 module Of_monad (M : sig
     type 'a t
 
@@ -1331,7 +1371,7 @@ module Of_applicative_without_return3 (A : sig
   end) : Applicative_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t = struct
   include Nonempty.Of_applicative_without_return3 (A)
 
-  module Kleisli = Nonempty.Make_access4 (struct
+  module Kleisli = Nonempty0.Make_access4 (struct
       type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) A.t
 
       let nonempty traverse f at = of_nonempty (traverse at) ~access:f
@@ -1553,6 +1593,48 @@ module Of_monad_without_return (M : sig
 
     include (M : module type of M with type 'a t := 'a M.t)
   end)
+
+module Many = struct
+  module Accessor = Of_applicative3 (Many0)
+  include Many0
+
+  let access_many accessor at = Accessor.map accessor at ~f:access
+
+  module Let_syntax = struct
+    include Let_syntax
+
+    module Let_syntax = struct
+      include Let_syntax
+
+      module Open_on_rhs = struct
+        include Open_on_rhs
+
+        let access_many = access_many
+      end
+    end
+  end
+end
+
+module Nonempty = struct
+  module Accessor = Of_applicative_without_return3 (Nonempty0)
+  include Nonempty0
+
+  let access_nonempty accessor at = Accessor.map accessor at ~f:access
+
+  module Let_syntax = struct
+    include Let_syntax
+
+    module Let_syntax = struct
+      include Let_syntax
+
+      module Open_on_rhs = struct
+        include Open_on_rhs
+
+        let access_nonempty = access_nonempty
+      end
+    end
+  end
+end
 
 let set t at ~to_ = mapi t at ~f:(fun _ _ -> to_)
 
