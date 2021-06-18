@@ -5,5 +5,5 @@
   (bash
    "%{workspace_root}/lib/accessor/doc/accessor_subtyping_diagram.exe | tred | dot -Tsvg | %{workspace_root}/app/make-corrected-file/bin/main.exe subtyping.svg")))
 
-(executables (names accessor_subtyping_diagram) (libraries core accessor)
- (preprocess (pps ppx_jane)))
+(executables (names accessor_subtyping_diagram)
+ (libraries core_kernel.core accessor) (preprocess (pps ppx_jane)))

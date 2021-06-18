@@ -1,4 +1,4 @@
-open! Core_kernel
+open! Core
 open! Import
 
 let%expect_test "Index.sexp_of_t" =
