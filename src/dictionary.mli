@@ -11,7 +11,10 @@ module Create : sig
   module Isomorphism : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. get:('at -> 'a) -> construct:('b -> 'bt) -> ('a, 'b, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            get:('at -> 'a)
+          -> construct:('b -> 'bt)
+          -> ('a, 'b, 'w) Hk.t2
           -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
@@ -20,8 +23,8 @@ module Create : sig
   module Field : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
@@ -29,8 +32,11 @@ module Create : sig
   module Variant : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. match_:('at -> ('a, 'bt) Either.t) -> construct:('b -> 'bt)
-          -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            match_:('at -> ('a, 'bt) Either.t)
+          -> construct:('b -> 'bt)
+          -> ('a, 'b, 'w) Hk.t2
+          -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
@@ -50,7 +56,9 @@ module Create : sig
   module Optional : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> ('a * ('b -> 'bt), 'bt) Either.t) -> ('a, 'b, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+          -> ('a, 'b, 'w) Hk.t2
           -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
@@ -67,8 +75,8 @@ module Create : sig
   module Nonempty : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> ('bt, 'a, 'b) Nonempty.t) -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            ('at -> ('bt, 'a, 'b) Nonempty.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
@@ -76,8 +84,8 @@ module Create : sig
   module Nonempty_getter : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> 'a Nonempty_getter.t) -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            ('at -> 'a Nonempty_getter.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
@@ -85,8 +93,8 @@ module Create : sig
   module Many : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
@@ -94,8 +102,8 @@ module Create : sig
   module Many_getter : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> 'a Many_getter.t) -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            ('at -> 'a Many_getter.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
@@ -103,8 +111,8 @@ module Create : sig
   module Mapper : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+            ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
