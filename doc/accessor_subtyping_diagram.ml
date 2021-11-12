@@ -194,7 +194,7 @@ end
 
 open (
 struct
-  module Coverage_check : module type of Accessor.Subtyping = Subtyping
+  module _ : module type of Accessor.Subtyping = Subtyping
 end :
 sig end)
 
