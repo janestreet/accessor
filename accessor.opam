@@ -1,4 +1,5 @@
 opam-version: "2.0"
+version: "v0.15.0"
 maintainer: "Jane Street developers"
 authors: ["Jane Street Group, LLC"]
 homepage: "https://github.com/janestreet/accessor"
@@ -10,10 +11,10 @@ build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "ocaml" {>= "4.09.0"}
-  "base"
-  "higher_kinded"
-  "ppx_jane"
+  "ocaml"         {>= "4.09.0"}
+  "base"          {>= "v0.15" & < "v0.16"}
+  "higher_kinded" {>= "v0.15" & < "v0.16"}
+  "ppx_jane"      {>= "v0.15" & < "v0.16"}
   "dune"          {>= "2.0.0"}
 ]
 synopsis: "A library that makes it nicer to work with nested functional data structures"
