@@ -774,6 +774,10 @@ module Prim = struct
     }
   ;;
 
+  let dummy =
+    { f = (fun dictionary mapping -> (optional' Either.second).f dictionary mapping) }
+  ;;
+
   let map_index f =
     { f =
         (fun dictionary ->

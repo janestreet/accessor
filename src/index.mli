@@ -5,7 +5,7 @@ open! Import
 type 'a t =
   | [] : unit t
   | ( :: ) : 'a * 'b t -> ('a * 'b) t
-[@@deriving sexp_of]
+[@@deriving hash, sexp_of]
 
 val hd : ('hd * _) t -> 'hd
 val tl : (_ * 'tl) t -> 'tl t

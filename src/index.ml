@@ -16,6 +16,7 @@ let rec tail_recursive_with_tuple : type a r. a t -> f:(a -> r) -> r =
 ;;
 
 let to_tuple t = tail_recursive_with_tuple t ~f:Fn.id
+let hash_fold_t hash_fold_tuple hash_state t = hash_fold_tuple hash_state (to_tuple t)
 
 (* renders like a list *)
 let sexp_of_t sexp_of_tuple =

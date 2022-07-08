@@ -132,6 +132,10 @@ val compose
   -> ('inner, 'middle, 'kind) General.t
   -> ('inner, 'outer, 'kind) General.t
 
+(** [dummy] is an accessor of a value that is never present. [get_option dummy] will
+    always return [None], and [map dummy] is always a no-op. *)
+val dummy : (_, _, _, [< optional ]) t
+
 (** {1 Using accessors} *)
 
 (** {2 Indices} *)
