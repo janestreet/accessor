@@ -1259,3 +1259,19 @@ val constructor_to_getter
     The resulting accessor is only well-behaved if you preserve the length of the list
     across getting and setting. *)
 val many_to_list_field : (unit, 'a, 'at, [> many ]) t -> (_, 'a list, 'at, [< field ]) t
+
+(** Combine two [field] accessors into one that accesses both inner values at once. The
+    resulting accessor is only well-behaved if the two input accessors access disjoint
+    parts of the outer structure. *)
+val disjoint_field_product
+  :  (unit, 'a, 'c, [> field ]) t
+  -> (unit, 'b, 'c, [> field ]) t
+  -> (_, 'a * 'b, 'c, [< field ]) t
+
+(** Combine two [many] accessors into one that accesses each inner value accessed by each
+    accessor. The resulting accessor is only well-behaved if the two input accessors
+    access disjoint parts of the outer structure. *)
+val disjoint_merge
+  :  (unit, 'a, 'b, [> many ]) t
+  -> (unit, 'a, 'b, [> many ]) t
+  -> (_, 'a, 'b, [< many ]) t

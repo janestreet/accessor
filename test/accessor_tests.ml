@@ -41,3 +41,37 @@ let%expect_test "match_" =
   print_s [%sexp (Accessor.match_ Foo.a b : (int, Nothing.t Foo.t) Either.t)];
   [%expect {| (Second B) |}]
 ;;
+
+let%expect_test "disjoint_field_product" =
+  let module Foo = struct
+    type t =
+      { x : int
+      ; y : int
+      }
+    [@@deriving accessors, sexp_of]
+  end
+  in
+  let tupled = [%accessor Accessor.disjoint_field_product Foo.x Foo.y] in
+  let a = { Foo.x = 42; y = 1337 } in
+  print_s [%sexp (a.@(tupled) : int * int)];
+  [%expect {| (42 1337) |}];
+  print_s [%sexp (a.@(tupled) <- 0, 1 : Foo.t)];
+  [%expect {| ((x 0) (y 1)) |}]
+;;
+
+let%expect_test "disjoint_merge" =
+  let module Foo = struct
+    type t =
+      { x : int
+      ; y : int
+      }
+    [@@deriving accessors, sexp_of]
+  end
+  in
+  let each = [%accessor Accessor.disjoint_merge Foo.x Foo.y] in
+  let a = { Foo.x = 42; y = 1337 } in
+  print_s [%sexp (a.@*(each) : int list)];
+  [%expect {| (42 1337) |}];
+  print_s [%sexp (Accessor.map each a ~f:succ : Foo.t)];
+  [%expect {| ((x 43) (y 1338)) |}]
+;;

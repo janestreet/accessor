@@ -1958,3 +1958,18 @@ let many_to_list_field t =
       | [] -> [], a
       | b :: bs -> bs, b))
 ;;
+
+let disjoint_field_product t1 t2 =
+  field
+    ~get:(fun c -> get t1 c, get t2 c)
+    ~set:(fun c (a, b) -> set t2 (set t1 c ~to_:a) ~to_:b)
+;;
+
+let disjoint_merge t1 t2 =
+  disjoint_field_product (many_to_list_field t1) (many_to_list_field t2)
+  @> many (fun (a, b) ->
+    let open Many.Let_syntax in
+    let%map_open a = Many.all (List.map a ~f:access)
+    and b = Many.all (List.map b ~f:access) in
+    a, b)
+;;
