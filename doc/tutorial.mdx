@@ -278,17 +278,18 @@ accessor two different ways.
 Line 7, characters 48-63:
 Error: This expression has type
          (unit -> int -> int, unit -> cell -> cell,
-          [< Accessor.field > `at_least_one `at_most_one `get ] as 'a)
+          [< Accessor.field > `at_least_one `at_most_one `get ])
          Accessor.General.t
        but an expression was expected of type
          (unit -> int -> int, unit -> cell -> cell,
-          [< Accessor_base__Import.many ] as 'b)
+          [< Accessor_base__Import.many ])
          Accessor.General.t
        Type
-         'a =
+         [< Accessor.field > `at_least_one `at_most_one `get ] =
            [< `at_least_one | `at_most_one | `get | `map
             > `at_least_one `at_most_one `get ]
-       is not compatible with type 'b = [< `get | `map ]
+       is not compatible with type
+         [< Accessor_base__Import.many ] = [< `get | `map ]
        The second variant type does not allow tag(s)
        `at_least_one, `at_most_one
 ```
@@ -499,7 +500,7 @@ We've already seen a `many` accessor in examples earlier:
 `Accessor.List.each`. Here is (a specialization of) its type:
 
 ```ocaml
-let each : (_, 'inner, 'outer list, [< many ]) Accessor.t = Accessor.List.each
+let each : (_, 'a, 'a list, [< many ]) Accessor.t = Accessor.List.each
 ```
 
 Every `field` accessor is also a valid `many` accessor, which is what
