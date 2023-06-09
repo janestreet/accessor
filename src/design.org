@@ -278,7 +278,7 @@ should read it first.
 
    A few months later, v1.8 is published. This version is noteworthy only
    because it is the first version to include a diagram on its project page
-   showing the subtyping heirarchy of various lenses.
+   showing the subtyping hierarchy of various lenses.
 
    By December, a version was released that included ~Prism~ (which in our
    ~Accessor~ library is called a ~variant~ accessor). It followed a similar
@@ -676,7 +676,7 @@ should read it first.
 *** Type classes
 
     The type classes we actually use in ~Accessor~ have little to do with the
-    type class heirarchy used in most other implementations. The observation is
+    type class hierarchy used in most other implementations. The observation is
     that every kind of accessor can be represented with exactly one type class
     with exactly one method that knows how to convert from a concrete accessor
     representation to a transformation between mappings. Let's take the
