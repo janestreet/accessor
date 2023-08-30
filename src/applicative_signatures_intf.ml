@@ -12,14 +12,14 @@ module type Applicative_general = sig
        -> 'at
        -> f:('a -> ('b, 'd, 'e) t)
        -> ('bt, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val mapi
     : (('i -> 'a -> 'b, unit -> 'at -> 'bt, [> many ]) accessor
        -> 'at
        -> f:('i Index.t -> 'a -> ('b, 'd, 'e) t)
        -> ('bt, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val all
     :  (unit -> ('a, 'd, 'e) t -> 'a, unit -> 'at -> 'bt, [> many ]) accessor
@@ -36,14 +36,14 @@ module type Applicative_general = sig
        -> 'at
        -> f:('a -> (unit, 'd, 'e) t)
        -> (unit, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val iteri
     : (('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) accessor
        -> 'at
        -> f:('i Index.t -> 'a -> (unit, 'd, 'e) t)
        -> (unit, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val sum
     : ((module Container.Summable with type t = 'sum)
@@ -51,7 +51,7 @@ module type Applicative_general = sig
        -> 'at
        -> f:('a -> ('sum, 'd, 'e) t)
        -> ('sum, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val sumi
     : ((module Container.Summable with type t = 'sum)
@@ -59,21 +59,21 @@ module type Applicative_general = sig
        -> 'at
        -> f:('i Index.t -> 'a -> ('sum, 'd, 'e) t)
        -> ('sum, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val count
     : ((unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) accessor
        -> 'at
        -> f:('a -> (bool, 'd, 'e) t)
        -> (int, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val counti
     : (('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) accessor
        -> 'at
        -> f:('i Index.t -> 'a -> (bool, 'd, 'e) t)
        -> (int, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val map_reduce
     : ((unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) accessor
@@ -82,7 +82,7 @@ module type Applicative_general = sig
        -> combine:('b -> 'b -> 'b)
        -> f:('a -> ('b, 'd, 'e) t)
        -> ('b, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val map_reducei
     : (('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) accessor
@@ -91,7 +91,7 @@ module type Applicative_general = sig
        -> combine:('b -> 'b -> 'b)
        -> f:('i Index.t -> 'a -> ('b, 'd, 'e) t)
        -> ('b, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val map_reduce_nonempty
     : ((unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
@@ -99,7 +99,7 @@ module type Applicative_general = sig
        -> combine:('b -> 'b -> 'b)
        -> f:('a -> ('b, 'd, 'e) t)
        -> ('b, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val map_reduce_nonemptyi
     : (('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
@@ -107,7 +107,7 @@ module type Applicative_general = sig
        -> combine:('b -> 'b -> 'b)
        -> f:('i Index.t -> 'a -> ('b, 'd, 'e) t)
        -> ('b, 'd, 'e) t)
-        optional_args
+      optional_args
 end
 
 module type Applicative_without_return_general = sig
@@ -120,28 +120,28 @@ module type Applicative_without_return_general = sig
        -> 'at
        -> f:('a -> ('b, 'd, 'e) t)
        -> ('bt, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val mapi
     : (('i -> 'a -> 'b, unit -> 'at -> 'bt, [> nonempty ]) accessor
        -> 'at
        -> f:('i Index.t -> 'a -> ('b, 'd, 'e) t)
        -> ('bt, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val iter
     : ((unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
        -> 'at
        -> f:('a -> (unit, 'd, 'e) t)
        -> (unit, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val iteri
     : (('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
        -> 'at
        -> f:('i Index.t -> 'a -> (unit, 'd, 'e) t)
        -> (unit, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val sum
     : ((module Container.Summable with type t = 'sum)
@@ -149,7 +149,7 @@ module type Applicative_without_return_general = sig
        -> 'at
        -> f:('a -> ('sum, 'd, 'e) t)
        -> ('sum, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val sumi
     : ((module Container.Summable with type t = 'sum)
@@ -157,21 +157,21 @@ module type Applicative_without_return_general = sig
        -> 'at
        -> f:('i Index.t -> 'a -> ('sum, 'd, 'e) t)
        -> ('sum, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val count
     : ((unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
        -> 'at
        -> f:('a -> (bool, 'd, 'e) t)
        -> (int, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val counti
     : (('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
        -> 'at
        -> f:('i Index.t -> 'a -> (bool, 'd, 'e) t)
        -> (int, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val all
     :  (unit -> ('a, 'd, 'e) t -> 'a, unit -> 'at -> 'bt, [> nonempty ]) accessor
@@ -189,7 +189,7 @@ module type Applicative_without_return_general = sig
        -> combine:('b -> 'b -> 'b)
        -> f:('a -> ('b, 'd, 'e) t)
        -> ('b, 'd, 'e) t)
-        optional_args
+      optional_args
 
   val map_reduce_nonemptyi
     : (('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
@@ -197,7 +197,7 @@ module type Applicative_without_return_general = sig
        -> combine:('b -> 'b -> 'b)
        -> f:('i Index.t -> 'a -> ('b, 'd, 'e) t)
        -> ('b, 'd, 'e) t)
-        optional_args
+      optional_args
 end
 
 module type Functor_s3 = sig
@@ -268,7 +268,7 @@ module type Monad_s3 =
 
 module type Monad_without_return_s3 =
   Applicative_without_return_general
-  with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
+    with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
 
 module type Monad_s2 = sig
   type ('a, 'e) t

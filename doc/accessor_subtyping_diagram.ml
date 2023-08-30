@@ -193,10 +193,10 @@ module Subtyping = struct
 end
 
 open (
-struct
-  module _ : module type of Accessor.Subtyping = Subtyping
-end :
-sig end)
+  struct
+    module _ : module type of Accessor.Subtyping = Subtyping
+  end :
+    sig end)
 
 module Named_kind = struct
   type t =

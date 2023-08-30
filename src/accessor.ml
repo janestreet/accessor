@@ -22,7 +22,7 @@ module Indexed = struct
     ( 'inner_index * 'outer_index -> 'inner -> 'inner
     , 'outer_index -> 'outer -> 'outer
     , 'kind )
-      General.t
+    General.t
     constraint 'index = 'inner_index * 'outer_index
 end
 
@@ -35,8 +35,8 @@ module Prim = struct
 
   module Equality = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
-      end) =
+      type ('a, 'b, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -44,30 +44,30 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
-      end)
+      type ('a, 'b, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
-      end)
+      type ('a, 'b) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
+    end)
   end
 
   module Isomorphism = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val isomorphism
-          :  get:('at -> 'a)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val isomorphism
+        :  get:('at -> 'a)
+        -> construct:('b -> 'bt)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -81,42 +81,42 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val isomorphism
-          :  get:('at -> 'a)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val isomorphism
+        :  get:('at -> 'a)
+        -> construct:('b -> 'bt)
+        -> ('a, 'b, 'c) t
+        -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let isomorphism = T.isomorphism
-      end)
+      let isomorphism = T.isomorphism
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val isomorphism
-          :  get:('at -> 'a)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b) t
-          -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val isomorphism
+        :  get:('at -> 'a)
+        -> construct:('b -> 'bt)
+        -> ('a, 'b) t
+        -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let isomorphism = T.isomorphism
-      end)
+      let isomorphism = T.isomorphism
+    end)
   end
 
   module Field = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'c, 'd) t -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'c, 'd) t -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -125,38 +125,38 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let field = T.field
-      end)
+      let field = T.field
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let field = T.field
-      end)
+      let field = T.field
+    end)
   end
 
   module Variant = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val variant
-          :  match_:('at -> ('a, 'bt) Either.t)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val variant
+        :  match_:('at -> ('a, 'bt) Either.t)
+        -> construct:('b -> 'bt)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -170,42 +170,42 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val variant
-          :  match_:('at -> ('a, 'bt) Either.t)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val variant
+        :  match_:('at -> ('a, 'bt) Either.t)
+        -> construct:('b -> 'bt)
+        -> ('a, 'b, 'c) t
+        -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let variant = T.variant
-      end)
+      let variant = T.variant
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val variant
-          :  match_:('at -> ('a, 'bt) Either.t)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b) t
-          -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val variant
+        :  match_:('at -> ('a, 'bt) Either.t)
+        -> construct:('b -> 'bt)
+        -> ('a, 'b) t
+        -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let variant = T.variant
-      end)
+      let variant = T.variant
+    end)
   end
 
   module Constructor = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val constructor : ('b -> 'bt) -> ('a, 'b, 'c, 'd) t -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val constructor : ('b -> 'bt) -> ('a, 'b, 'c, 'd) t -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -219,34 +219,34 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val constructor : ('b -> 'bt) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val constructor : ('b -> 'bt) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let constructor = T.constructor
-      end)
+      let constructor = T.constructor
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val constructor : ('b -> 'bt) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val constructor : ('b -> 'bt) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let constructor = T.constructor
-      end)
+      let constructor = T.constructor
+    end)
   end
 
   module Getter = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val getter : ('at -> 'a) -> ('a, 'b, 'c, 'd) t -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val getter : ('at -> 'a) -> ('a, 'b, 'c, 'd) t -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -258,37 +258,37 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val getter : ('at -> 'a) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val getter : ('at -> 'a) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let getter = T.getter
-      end)
+      let getter = T.getter
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val getter : ('at -> 'a) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val getter : ('at -> 'a) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let getter = T.getter
-      end)
+      let getter = T.getter
+    end)
   end
 
   module Optional = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val optional
+        :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -300,43 +300,43 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val optional
+        :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+        -> ('a, 'b, 'c) t
+        -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let optional = T.optional
-      end)
+      let optional = T.optional
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-          -> ('a, 'b) t
-          -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val optional
+        :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+        -> ('a, 'b) t
+        -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let optional = T.optional
-      end)
+      let optional = T.optional
+    end)
   end
 
   module Optional_getter = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val optional_getter
-          :  ('at -> 'a option)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val optional_getter
+        :  ('at -> 'a option)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -352,39 +352,39 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val optional_getter : ('at -> 'a option) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val optional_getter : ('at -> 'a option) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let optional_getter = T.optional_getter
-      end)
+      let optional_getter = T.optional_getter
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val optional_getter : ('at -> 'a option) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val optional_getter : ('at -> 'a option) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let optional_getter = T.optional_getter
-      end)
+      let optional_getter = T.optional_getter
+    end)
   end
 
   module Nonempty0 = struct
     include Nonempty
 
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val nonempty
-          :  ('at -> ('bt, 'a, 'b) Nonempty.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val nonempty
+        :  ('at -> ('bt, 'a, 'b) Nonempty.t)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -398,42 +398,42 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val nonempty
-          :  ('at -> ('bt, 'a, 'b) Nonempty.t)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val nonempty
+        :  ('at -> ('bt, 'a, 'b) Nonempty.t)
+        -> ('a, 'b, 'c) t
+        -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let nonempty = T.nonempty
-      end)
+      let nonempty = T.nonempty
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val nonempty : ('at -> ('bt, 'a, 'b) Nonempty.t) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val nonempty : ('at -> ('bt, 'a, 'b) Nonempty.t) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let nonempty = T.nonempty
-      end)
+      let nonempty = T.nonempty
+    end)
   end
 
   module Nonempty_getter = struct
     include Nonempty_getter
 
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val nonempty_getter
-          :  ('at -> 'a Nonempty_getter.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val nonempty_getter
+        :  ('at -> 'a Nonempty_getter.t)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -449,42 +449,42 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val nonempty_getter
-          :  ('at -> 'a Nonempty_getter.t)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val nonempty_getter
+        :  ('at -> 'a Nonempty_getter.t)
+        -> ('a, 'b, 'c) t
+        -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let nonempty_getter = T.nonempty_getter
-      end)
+      let nonempty_getter = T.nonempty_getter
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val nonempty_getter : ('at -> 'a Nonempty_getter.t) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val nonempty_getter : ('at -> 'a Nonempty_getter.t) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let nonempty_getter = T.nonempty_getter
-      end)
+      let nonempty_getter = T.nonempty_getter
+    end)
   end
 
   module Many0 = struct
     include Many
 
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val many
-          :  ('at -> ('bt, 'a, 'b) Many.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val many
+        :  ('at -> ('bt, 'a, 'b) Many.t)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -496,39 +496,39 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val many : ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val many : ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let many = T.many
-      end)
+      let many = T.many
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val many : ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val many : ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let many = T.many
-      end)
+      let many = T.many
+    end)
   end
 
   module Many_getter = struct
     include Many_getter
 
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val many_getter
-          :  ('at -> 'a Many_getter.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val many_getter
+        :  ('at -> 'a Many_getter.t)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -542,37 +542,37 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val many_getter : ('at -> 'a Many_getter.t) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val many_getter : ('at -> 'a Many_getter.t) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let many_getter = T.many_getter
-      end)
+      let many_getter = T.many_getter
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val many_getter : ('at -> 'a Many_getter.t) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val many_getter : ('at -> 'a Many_getter.t) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let many_getter = T.many_getter
-      end)
+      let many_getter = T.many_getter
+    end)
   end
 
   module Mapper = struct
     module Make_access4 (T : sig
-        type ('a, 'b, 'c, 'd) t
+      type ('a, 'b, 'c, 'd) t
 
-        val mapper
-          :  ('at -> f:('a -> 'b) -> 'bt)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
-      end) =
+      val mapper
+        :  ('at -> f:('a -> 'b) -> 'bt)
+        -> ('a, 'b, 'c, 'd) t
+        -> ('at, 'bt, 'c, 'd) t
+    end) =
     struct
       module M = Mapping.Make4 (T)
 
@@ -584,26 +584,26 @@ module Prim = struct
     end
 
     module Make_access3 (T : sig
-        type ('a, 'b, 'c) t
+      type ('a, 'b, 'c) t
 
-        val mapper : ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
-      end) =
-      Make_access4 (struct
-        type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
+      val mapper : ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+    end) =
+    Make_access4 (struct
+      type ('a, 'b, 'c, 'd) t = ('a, 'b, 'c) T.t
 
-        let mapper = T.mapper
-      end)
+      let mapper = T.mapper
+    end)
 
     module Make_access (T : sig
-        type ('a, 'b) t
+      type ('a, 'b) t
 
-        val mapper : ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b) t -> ('at, 'bt) t
-      end) =
-      Make_access3 (struct
-        type ('a, 'b, 'c) t = ('a, 'b) T.t
+      val mapper : ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b) t -> ('at, 'bt) t
+    end) =
+    Make_access3 (struct
+      type ('a, 'b, 'c) t = ('a, 'b) T.t
 
-        let mapper = T.mapper
-      end)
+      let mapper = T.mapper
+    end)
   end
 
   module Construct = struct
@@ -638,12 +638,12 @@ module Prim = struct
   let map_reduce_nonemptyi (type r) t at ~combine ~f =
     let module T = struct
       include Nonempty_getter.Make_access (struct
-          type ('a, 'b) t = 'a -> r
+        type ('a, 'b) t = 'a -> r
 
-          let nonempty_getter traverse t at =
-            Nonempty_getter.map_reduce (traverse at) ~combine ~f:t
-          ;;
-        end)
+        let nonempty_getter traverse t at =
+          Nonempty_getter.map_reduce (traverse at) ~combine ~f:t
+        ;;
+      end)
     end
     in
     T.access t (fun (i, a) -> f i a) ([], at)
@@ -652,22 +652,22 @@ module Prim = struct
   let map_reducei (type r) t at ~empty ~combine ~f =
     let module T = struct
       include Many_getter.Make_access (struct
-          type ('a, 'b) t = 'a -> r
+        type ('a, 'b) t = 'a -> r
 
-          let many_getter traverse t at =
-            Many_getter.map_reduce (traverse at) ~empty ~combine ~f:t
-          ;;
-        end)
+        let many_getter traverse t at =
+          Many_getter.map_reduce (traverse at) ~empty ~combine ~f:t
+        ;;
+      end)
     end
     in
     T.access t (fun (i, a) -> f i a) ([], at)
   ;;
 
   module Map = Mapper.Make_access (struct
-      type ('a, 'b) t = 'a -> 'b
+    type ('a, 'b) t = 'a -> 'b
 
-      let mapper map t at = map at ~f:t
-    end)
+    let mapper map t at = map at ~f:t
+  end)
 
   let mapi t at ~f = Map.access t (fun (i, a) -> f i a) ([], at)
 
@@ -687,90 +687,90 @@ module Prim = struct
   let constructor construct =
     { f =
         (fun dictionary ->
-           Mapping.with_hk (Dictionary.Run.constructor dictionary construct))
+          Mapping.with_hk (Dictionary.Run.constructor dictionary construct))
     }
   ;;
 
   let field' f =
     { f =
         (fun dictionary ->
-           Dictionary.Run.field dictionary (fun (it, at) ->
-             let a, construct = f at in
-             (it, a), construct)
-           |> Mapping.with_hk)
+          Dictionary.Run.field dictionary (fun (it, at) ->
+            let a, construct = f at in
+            (it, a), construct)
+          |> Mapping.with_hk)
     }
   ;;
 
   let fieldi' f =
     { f =
         (fun dictionary ->
-           Dictionary.Run.field dictionary (fun (it, at) ->
-             let i, a, construct = f at in
-             (Index.(i :: it), a), construct)
-           |> Mapping.with_hk)
+          Dictionary.Run.field dictionary (fun (it, at) ->
+            let i, a, construct = f at in
+            (Index.(i :: it), a), construct)
+          |> Mapping.with_hk)
     }
   ;;
 
   let getter get =
     { f =
         (fun dictionary ->
-           Mapping.with_hk (Dictionary.Run.getter dictionary (fun (it, at) -> it, get at)))
+          Mapping.with_hk (Dictionary.Run.getter dictionary (fun (it, at) -> it, get at)))
     }
   ;;
 
   let getteri get =
     { f =
         (fun dictionary ->
-           Dictionary.Run.getter dictionary (fun (it, at) ->
-             let i, a = get at in
-             Index.(i :: it), a)
-           |> Mapping.with_hk)
+          Dictionary.Run.getter dictionary (fun (it, at) ->
+            let i, a = get at in
+            Index.(i :: it), a)
+          |> Mapping.with_hk)
     }
   ;;
 
   let isomorphism ~get ~construct =
     { f =
         (fun dictionary ->
-           Dictionary.Run.isomorphism
-             dictionary
-             ~get:(fun (it, at) -> it, get at)
-             ~construct
-           |> Mapping.with_hk)
+          Dictionary.Run.isomorphism
+            dictionary
+            ~get:(fun (it, at) -> it, get at)
+            ~construct
+          |> Mapping.with_hk)
     }
   ;;
 
   let isomorphismi ~get ~construct =
     { f =
         (fun dictionary ->
-           Dictionary.Run.isomorphism
-             dictionary
-             ~get:(fun (it, at) ->
-               let i, a = get at in
-               Index.(i :: it), a)
-             ~construct
-           |> Mapping.with_hk)
+          Dictionary.Run.isomorphism
+            dictionary
+            ~get:(fun (it, at) ->
+              let i, a = get at in
+              Index.(i :: it), a)
+            ~construct
+          |> Mapping.with_hk)
     }
   ;;
 
   let optional' f =
     { f =
         (fun dictionary ->
-           Dictionary.Run.optional dictionary (fun (it, at) ->
-             match f at with
-             | Either.First (a, construct) -> First ((it, a), construct)
-             | Second _ as bt -> bt)
-           |> Mapping.with_hk)
+          Dictionary.Run.optional dictionary (fun (it, at) ->
+            match f at with
+            | Either.First (a, construct) -> First ((it, a), construct)
+            | Second _ as bt -> bt)
+          |> Mapping.with_hk)
     }
   ;;
 
   let optionali' f =
     { f =
         (fun dictionary ->
-           Dictionary.Run.optional dictionary (fun (it, at) ->
-             match f at with
-             | Either.First (i, a, construct) -> First ((Index.(i :: it), a), construct)
-             | Second _ as bt -> bt)
-           |> Mapping.with_hk)
+          Dictionary.Run.optional dictionary (fun (it, at) ->
+            match f at with
+            | Either.First (i, a, construct) -> First ((Index.(i :: it), a), construct)
+            | Second _ as bt -> bt)
+          |> Mapping.with_hk)
     }
   ;;
 
@@ -781,168 +781,168 @@ module Prim = struct
   let map_index f =
     { f =
         (fun dictionary ->
-           Dictionary.Run.isomorphism
-             dictionary
-             ~get:(fun (i, a) -> f i, a)
-             ~construct:Fn.id
-           |> Mapping.with_hk)
+          Dictionary.Run.isomorphism
+            dictionary
+            ~get:(fun (i, a) -> f i, a)
+            ~construct:Fn.id
+          |> Mapping.with_hk)
     }
   ;;
 
   let filter_index f =
     { f =
         (fun dictionary ->
-           Dictionary.Run.optional dictionary (fun ((i, a) as ia) ->
-             if f i then First (ia, Fn.id) else Second a)
-           |> Mapping.with_hk)
+          Dictionary.Run.optional dictionary (fun ((i, a) as ia) ->
+            if f i then First (ia, Fn.id) else Second a)
+          |> Mapping.with_hk)
     }
   ;;
 
   let filter_map_index f =
     { f =
         (fun dictionary ->
-           Dictionary.Run.optional dictionary (fun (i, a) ->
-             match f i with
-             | None -> Second a
-             | Some i -> First ((i, a), Fn.id))
-           |> Mapping.with_hk)
+          Dictionary.Run.optional dictionary (fun (i, a) ->
+            match f i with
+            | None -> Second a
+            | Some i -> First ((i, a), Fn.id))
+          |> Mapping.with_hk)
     }
   ;;
 
   let optional_getter get_option =
     { f =
         (fun dictionary ->
-           Dictionary.Run.optional_getter dictionary (fun (it, at) ->
-             Option.map (get_option at) ~f:(fun a -> it, a))
-           |> Mapping.with_hk)
+          Dictionary.Run.optional_getter dictionary (fun (it, at) ->
+            Option.map (get_option at) ~f:(fun a -> it, a))
+          |> Mapping.with_hk)
     }
   ;;
 
   let optional_getteri get_option =
     { f =
         (fun dictionary ->
-           Dictionary.Run.optional_getter dictionary (fun (it, at) ->
-             Option.map (get_option at) ~f:(fun (i, a) -> Index.(i :: it), a))
-           |> Mapping.with_hk)
+          Dictionary.Run.optional_getter dictionary (fun (it, at) ->
+            Option.map (get_option at) ~f:(fun (i, a) -> Index.(i :: it), a))
+          |> Mapping.with_hk)
     }
   ;;
 
   let nonempty traverse =
     { f =
         (fun dictionary ->
-           Dictionary.Run.nonempty dictionary (fun (it, at) ->
-             Nonempty.Accessed.bind (traverse at) ~f:(fun a -> Nonempty.access (it, a)))
-           |> Mapping.with_hk)
+          Dictionary.Run.nonempty dictionary (fun (it, at) ->
+            Nonempty.Accessed.bind (traverse at) ~f:(fun a -> Nonempty.access (it, a)))
+          |> Mapping.with_hk)
     }
   ;;
 
   let nonemptyi traverse =
     { f =
         (fun dictionary ->
-           Dictionary.Run.nonempty dictionary (fun (it, at) ->
-             Nonempty.Accessed.bind (traverse at) ~f:(fun (i, a) ->
-               Nonempty.access (Index.(i :: it), a)))
-           |> Mapping.with_hk)
+          Dictionary.Run.nonempty dictionary (fun (it, at) ->
+            Nonempty.Accessed.bind (traverse at) ~f:(fun (i, a) ->
+              Nonempty.access (Index.(i :: it), a)))
+          |> Mapping.with_hk)
     }
   ;;
 
   let nonempty_getter traverse =
     { f =
         (fun dictionary ->
-           Dictionary.Run.nonempty_getter dictionary (fun (it, at) ->
-             Nonempty_getter.map (traverse at) ~f:(fun a -> it, a))
-           |> Mapping.with_hk)
+          Dictionary.Run.nonempty_getter dictionary (fun (it, at) ->
+            Nonempty_getter.map (traverse at) ~f:(fun a -> it, a))
+          |> Mapping.with_hk)
     }
   ;;
 
   let nonempty_getteri traverse =
     { f =
         (fun dictionary ->
-           Dictionary.Run.nonempty_getter dictionary (fun (it, at) ->
-             Nonempty_getter.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
-           |> Mapping.with_hk)
+          Dictionary.Run.nonempty_getter dictionary (fun (it, at) ->
+            Nonempty_getter.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
+          |> Mapping.with_hk)
     }
   ;;
 
   let many traverse =
     { f =
         (fun dictionary ->
-           Dictionary.Run.many dictionary (fun (it, at) ->
-             Many.Accessed.map (traverse at) ~f:(fun a -> it, a))
-           |> Mapping.with_hk)
+          Dictionary.Run.many dictionary (fun (it, at) ->
+            Many.Accessed.map (traverse at) ~f:(fun a -> it, a))
+          |> Mapping.with_hk)
     }
   ;;
 
   let manyi traverse =
     { f =
         (fun dictionary ->
-           Dictionary.Run.many dictionary (fun (it, at) ->
-             Many.Accessed.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
-           |> Mapping.with_hk)
+          Dictionary.Run.many dictionary (fun (it, at) ->
+            Many.Accessed.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
+          |> Mapping.with_hk)
     }
   ;;
 
   let many_getter traverse =
     { f =
         (fun dictionary ->
-           Dictionary.Run.many_getter dictionary (fun (it, at) ->
-             Many_getter.map (traverse at) ~f:(fun a -> it, a))
-           |> Mapping.with_hk)
+          Dictionary.Run.many_getter dictionary (fun (it, at) ->
+            Many_getter.map (traverse at) ~f:(fun a -> it, a))
+          |> Mapping.with_hk)
     }
   ;;
 
   let many_getteri traverse =
     { f =
         (fun dictionary ->
-           Dictionary.Run.many_getter dictionary (fun (it, at) ->
-             Many_getter.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
-           |> Mapping.with_hk)
+          Dictionary.Run.many_getter dictionary (fun (it, at) ->
+            Many_getter.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
+          |> Mapping.with_hk)
     }
   ;;
 
   let mapper map =
     { f =
         (fun dictionary ->
-           Dictionary.Run.mapper dictionary (fun (it, at) ~f ->
-             map at ~f:(fun a -> f (it, a)))
-           |> Mapping.with_hk)
+          Dictionary.Run.mapper dictionary (fun (it, at) ~f ->
+            map at ~f:(fun a -> f (it, a)))
+          |> Mapping.with_hk)
     }
   ;;
 
   let mapperi map =
     { f =
         (fun dictionary ->
-           Dictionary.Run.mapper dictionary (fun (it, at) ~f ->
-             map at ~f:(fun i a -> f (Index.(i :: it), a)))
-           |> Mapping.with_hk)
+          Dictionary.Run.mapper dictionary (fun (it, at) ~f ->
+            map at ~f:(fun i a -> f (Index.(i :: it), a)))
+          |> Mapping.with_hk)
     }
   ;;
 
   let variant ~match_ ~construct =
     { f =
         (fun dictionary ->
-           Dictionary.Run.variant
-             dictionary
-             ~match_:(fun (it, at) ->
-               match match_ at with
-               | Either.First a -> First (it, a)
-               | Second _ as bt -> bt)
-             ~construct
-           |> Mapping.with_hk)
+          Dictionary.Run.variant
+            dictionary
+            ~match_:(fun (it, at) ->
+              match match_ at with
+              | Either.First a -> First (it, a)
+              | Second _ as bt -> bt)
+            ~construct
+          |> Mapping.with_hk)
     }
   ;;
 
   let varianti ~match_ ~construct =
     { f =
         (fun dictionary ->
-           Dictionary.Run.variant
-             dictionary
-             ~match_:(fun (it, at) ->
-               match match_ at with
-               | Either.First (i, a) -> First (Index.(i :: it), a)
-               | Second _ as bt -> bt)
-             ~construct
-           |> Mapping.with_hk)
+          Dictionary.Run.variant
+            dictionary
+            ~match_:(fun (it, at) ->
+              match match_ at with
+              | Either.First (i, a) -> First (Index.(i :: it), a)
+              | Second _ as bt -> bt)
+            ~construct
+          |> Mapping.with_hk)
     }
   ;;
 end
@@ -952,87 +952,87 @@ include Prim
 module Functor = struct
   module type S =
     Functor_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Functor_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Functor_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative = struct
   module type S =
     Applicative_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Applicative_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Applicative_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative_without_return = struct
   module type S =
     Applicative_without_return_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Applicative_without_return_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Applicative_without_return_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Monad = struct
   module type S =
     Monad_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Monad_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Monad_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Monad_without_return = struct
   module type S =
     Monad_without_return_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Monad_without_return_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Monad_without_return_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Of_applicative3 (A : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val return : 'a -> ('a, _, _) t
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-    val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
-  end) : Applicative.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t = struct
+  val return : 'a -> ('a, _, _) t
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+  val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+end) : Applicative.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t = struct
   include Many.Of_applicative3 (A)
 
   module Kleisli = Many0.Make_access4 (struct
-      type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) A.t
+    type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) A.t
 
-      let many traverse f at = of_many (traverse at) ~access:f
-    end)
+    let many traverse f at = of_many (traverse at) ~access:f
+  end)
 
   let mapi t at ~f = Kleisli.access t (fun (i, a) -> f i a) ([], at)
   let map t at ~f = mapi t at ~f:(fun [] a -> f a)
@@ -1092,52 +1092,52 @@ module Of_applicative3 (A : sig
 end
 
 module Of_applicative2 (A : sig
-    type ('a, 'e) t
+  type ('a, 'e) t
 
-    val return : 'a -> ('a, _) t
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
-    val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
-  end) =
-  Of_applicative3 (struct
-    type ('a, _, 'e) t = ('a, 'e) A.t
+  val return : 'a -> ('a, _) t
+  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+  val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
+end) =
+Of_applicative3 (struct
+  type ('a, _, 'e) t = ('a, 'e) A.t
 
-    include (A : module type of A with type ('a, 'e) t := ('a, 'e) A.t)
-  end)
+  include (A : module type of A with type ('a, 'e) t := ('a, 'e) A.t)
+end)
 
 module Of_applicative (A : sig
-    type 'a t
+  type 'a t
 
-    val return : 'a -> 'a t
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-    val apply : ('a -> 'b) t -> 'a t -> 'b t
-  end) =
-  Of_applicative2 (struct
-    type ('a, _) t = 'a A.t
+  val return : 'a -> 'a t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val apply : ('a -> 'b) t -> 'a t -> 'b t
+end) =
+Of_applicative2 (struct
+  type ('a, _) t = 'a A.t
 
-    include (A : module type of A with type 'a t := 'a A.t)
-  end)
+  include (A : module type of A with type 'a t := 'a A.t)
+end)
 
 module Of_monad3 (M : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val return : 'a -> ('a, _, _) t
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+  val return : 'a -> ('a, _, _) t
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
 
-    val apply
-      : [ `Custom of ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
-        | `Define_using_bind
-        ]
+  val apply
+    : [ `Custom of ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+      | `Define_using_bind
+      ]
 
-    val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
-  end) : Monad.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) M.t = struct
+  val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
+end) : Monad.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) M.t = struct
   module Sequential = struct
     include Of_applicative3 (struct
-        type ('a, 'd, 'e) t = unit -> ('a, 'd, 'e) M.t
+      type ('a, 'd, 'e) t = unit -> ('a, 'd, 'e) M.t
 
-        let return a () = M.return a
-        let map t ~f () = M.map (t ()) ~f
-        let apply t1 t2 () = M.bind (t1 ()) ~f:(fun f -> M.map (t2 ()) ~f)
-      end)
+      let return a () = M.return a
+      let map t ~f () = M.map (t ()) ~f
+      let apply t1 t2 () = M.bind (t1 ()) ~f:(fun f -> M.map (t2 ()) ~f)
+    end)
 
     let map t at ~f = map t at ~f:(fun a () -> f a) ()
     let mapi t at ~f = mapi t at ~f:(fun i a () -> f i a) ()
@@ -1209,17 +1209,17 @@ module Of_monad3 (M : sig
   end
 
   module Parallel = Of_applicative3 (struct
-      type ('a, 'd, 'e) t = ('a, 'd, 'e) M.t
+    type ('a, 'd, 'e) t = ('a, 'd, 'e) M.t
 
-      let return = M.return
-      let map = M.map
+    let return = M.return
+    let map = M.map
 
-      let apply =
-        match M.apply with
-        | `Custom apply -> apply
-        | `Define_using_bind -> fun t1 t2 -> M.bind t1 ~f:(fun f -> M.map t2 ~f)
-      ;;
-    end)
+    let apply =
+      match M.apply with
+      | `Custom apply -> apply
+      | `Define_using_bind -> fun t1 t2 -> M.bind t1 ~f:(fun f -> M.map t2 ~f)
+    ;;
+  end)
 
   let map ?(how = `Sequential) t at ~f =
     match how with
@@ -1298,49 +1298,49 @@ module Of_monad3 (M : sig
 end
 
 module Of_monad2 (M : sig
-    type ('a, 'e) t
+  type ('a, 'e) t
 
-    val return : 'a -> ('a, _) t
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+  val return : 'a -> ('a, _) t
+  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
 
-    val apply
-      : [ `Custom of ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t | `Define_using_bind ]
+  val apply
+    : [ `Custom of ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t | `Define_using_bind ]
 
-    val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
-  end) =
-  Of_monad3 (struct
-    type ('a, _, 'e) t = ('a, 'e) M.t
+  val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
+end) =
+Of_monad3 (struct
+  type ('a, _, 'e) t = ('a, 'e) M.t
 
-    include (M : module type of M with type ('a, 'e) t := ('a, 'e) M.t)
-  end)
+  include (M : module type of M with type ('a, 'e) t := ('a, 'e) M.t)
+end)
 
 module Of_monad (M : sig
-    type 'a t
+  type 'a t
 
-    val return : 'a -> 'a t
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-    val apply : [ `Custom of ('a -> 'b) t -> 'a t -> 'b t | `Define_using_bind ]
-    val bind : 'a t -> f:('a -> 'b t) -> 'b t
-  end) =
-  Of_monad2 (struct
-    type ('a, _) t = 'a M.t
+  val return : 'a -> 'a t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val apply : [ `Custom of ('a -> 'b) t -> 'a t -> 'b t | `Define_using_bind ]
+  val bind : 'a t -> f:('a -> 'b t) -> 'b t
+end) =
+Of_monad2 (struct
+  type ('a, _) t = 'a M.t
 
-    include (M : module type of M with type 'a t := 'a M.t)
-  end)
+  include (M : module type of M with type 'a t := 'a M.t)
+end)
 
 module Of_functor3 (F : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-  end) : Functor.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) F.t = struct
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+end) : Functor.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) F.t = struct
   include Field.Make_access4 (struct
-      type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) F.t
+    type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) F.t
 
-      let field field_f t at =
-        let a, construct = field_f at in
-        F.map (t a) ~f:construct
-      ;;
-    end)
+    let field field_f t at =
+      let a, construct = field_f at in
+      F.map (t a) ~f:construct
+    ;;
+  end)
 
   let mapi t at ~f = access t (fun (i, a) -> f i a) ([], at)
   let map t at ~f = mapi t at ~f:(fun [] a -> f a)
@@ -1348,38 +1348,38 @@ module Of_functor3 (F : sig
 end
 
 module Of_functor2 (F : sig
-    type ('a, 'd) t
+  type ('a, 'd) t
 
-    val map : ('a, 'd) t -> f:('a -> 'b) -> ('b, 'd) t
-  end) : Functor.S2 with type ('a, 'd) t := ('a, 'd) F.t = Of_functor3 (struct
-    type ('a, 'd, _) t = ('a, 'd) F.t
+  val map : ('a, 'd) t -> f:('a -> 'b) -> ('b, 'd) t
+end) : Functor.S2 with type ('a, 'd) t := ('a, 'd) F.t = Of_functor3 (struct
+  type ('a, 'd, _) t = ('a, 'd) F.t
 
-    let map = F.map
-  end)
+  let map = F.map
+end)
 
 module Of_functor (F : sig
-    type 'a t
+  type 'a t
 
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-  end) : Functor.S with type 'a t := 'a F.t = Of_functor2 (struct
-    type ('a, _) t = 'a F.t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+end) : Functor.S with type 'a t := 'a F.t = Of_functor2 (struct
+  type ('a, _) t = 'a F.t
 
-    let map = F.map
-  end)
+  let map = F.map
+end)
 
 module Of_applicative_without_return3 (A : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-    val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
-  end) : Applicative_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t = struct
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+  val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+end) : Applicative_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t = struct
   include Nonempty.Of_applicative_without_return3 (A)
 
   module Kleisli = Nonempty0.Make_access4 (struct
-      type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) A.t
+    type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) A.t
 
-      let nonempty traverse f at = of_nonempty (traverse at) ~access:f
-    end)
+    let nonempty traverse f at = of_nonempty (traverse at) ~access:f
+  end)
 
   let mapi t at ~f = Kleisli.access t (fun (i, a) -> f i a) ([], at)
   let map t at ~f = mapi t at ~f:(fun [] a -> f a)
@@ -1419,42 +1419,42 @@ module Of_applicative_without_return3 (A : sig
 end
 
 module Of_applicative_without_return2 (A : sig
-    type ('a, 'e) t
+  type ('a, 'e) t
 
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
-    val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
-  end) =
-  Of_applicative_without_return3 (struct
-    type ('a, _, 'e) t = ('a, 'e) A.t
+  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+  val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
+end) =
+Of_applicative_without_return3 (struct
+  type ('a, _, 'e) t = ('a, 'e) A.t
 
-    include (A : module type of A with type ('a, 'e) t := ('a, 'e) A.t)
-  end)
+  include (A : module type of A with type ('a, 'e) t := ('a, 'e) A.t)
+end)
 
 module Of_applicative_without_return (A : sig
-    type 'a t
+  type 'a t
 
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-    val apply : ('a -> 'b) t -> 'a t -> 'b t
-  end) =
-  Of_applicative_without_return2 (struct
-    type ('a, 'i) t = 'a A.t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val apply : ('a -> 'b) t -> 'a t -> 'b t
+end) =
+Of_applicative_without_return2 (struct
+  type ('a, 'i) t = 'a A.t
 
-    include (A : module type of A with type 'a t := 'a A.t)
-  end)
+  include (A : module type of A with type 'a t := 'a A.t)
+end)
 
 module Of_monad_without_return3 (M : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-    val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
-  end) : Monad_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) M.t = struct
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+  val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
+end) : Monad_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) M.t = struct
   module Sequential = struct
     include Of_applicative_without_return3 (struct
-        type ('a, 'd, 'e) t = unit -> ('a, 'd, 'e) M.t
+      type ('a, 'd, 'e) t = unit -> ('a, 'd, 'e) M.t
 
-        let map t ~f () = M.map (t ()) ~f
-        let apply t1 t2 () = M.bind (t1 ()) ~f:(fun f -> M.map (t2 ()) ~f)
-      end)
+      let map t ~f () = M.map (t ()) ~f
+      let apply t1 t2 () = M.bind (t1 ()) ~f:(fun f -> M.map (t2 ()) ~f)
+    end)
 
     let map t at ~f = map t at ~f:(fun a () -> f a) ()
     let mapi t at ~f = mapi t at ~f:(fun i a () -> f i a) ()
@@ -1504,11 +1504,11 @@ module Of_monad_without_return3 (M : sig
   end
 
   module Parallel = Of_applicative_without_return3 (struct
-      type ('a, 'd, 'e) t = ('a, 'd, 'e) M.t
+    type ('a, 'd, 'e) t = ('a, 'd, 'e) M.t
 
-      let map t ~f = M.map t ~f
-      let apply t1 t2 = M.bind t1 ~f:(fun f -> M.map t2 ~f)
-    end)
+    let map t ~f = M.map t ~f
+    let apply t1 t2 = M.bind t1 ~f:(fun f -> M.map t2 ~f)
+  end)
 
   let map ?(how = `Sequential) t at ~f =
     match how with
@@ -1575,28 +1575,28 @@ module Of_monad_without_return3 (M : sig
 end
 
 module Of_monad_without_return2 (M : sig
-    type ('a, 'e) t
+  type ('a, 'e) t
 
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
-    val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
-  end) =
-  Of_monad_without_return3 (struct
-    type ('a, _, 'e) t = ('a, 'e) M.t
+  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+  val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
+end) =
+Of_monad_without_return3 (struct
+  type ('a, _, 'e) t = ('a, 'e) M.t
 
-    include (M : module type of M with type ('a, 'e) t := ('a, 'e) M.t)
-  end)
+  include (M : module type of M with type ('a, 'e) t := ('a, 'e) M.t)
+end)
 
 module Of_monad_without_return (M : sig
-    type 'a t
+  type 'a t
 
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-    val bind : 'a t -> f:('a -> 'b t) -> 'b t
-  end) =
-  Of_monad_without_return2 (struct
-    type ('a, _) t = 'a M.t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val bind : 'a t -> f:('a -> 'b t) -> 'b t
+end) =
+Of_monad_without_return2 (struct
+  type ('a, _) t = 'a M.t
 
-    include (M : module type of M with type 'a t := 'a M.t)
-  end)
+  include (M : module type of M with type 'a t := 'a M.t)
+end)
 
 module Many = struct
   module Accessor = Of_applicative3 (Many0)
@@ -1793,28 +1793,28 @@ let hd_optioni t at =
 ;;
 
 module With_accumulator = Of_monad2 (struct
-    type ('a, 'acc) t = 'acc -> 'acc * 'a
+  type ('a, 'acc) t = 'acc -> 'acc * 'a
 
-    let return a acc = acc, a
+  let return a acc = acc, a
 
-    let map t ~f acc =
-      let acc, a = t acc in
-      acc, f a
-    ;;
+  let map t ~f acc =
+    let acc, a = t acc in
+    acc, f a
+  ;;
 
-    let apply t1 t2 acc =
-      let acc, f = t1 acc in
-      let acc, a = t2 acc in
-      acc, f a
-    ;;
+  let apply t1 t2 acc =
+    let acc, f = t1 acc in
+    let acc, a = t2 acc in
+    acc, f a
+  ;;
 
-    let apply = `Custom apply
+  let apply = `Custom apply
 
-    let bind t ~f acc =
-      let acc, a = t acc in
-      f a acc
-    ;;
-  end)
+  let bind t ~f acc =
+    let acc, a = t acc in
+    f a acc
+  ;;
+end)
 
 let fold_map t at ~init ~f = With_accumulator.map t at ~f:(fun a acc -> f acc a) init
 
@@ -1857,10 +1857,10 @@ let optionali ~match_ ~set =
 let of_variant variant_t = constructor variant_t.Base.Variant.constructor
 
 module Concrete_getter = Getter.Make_access3 (struct
-    type ('a, _, 'r) t = 'a -> 'r
+  type ('a, _, 'r) t = 'a -> 'r
 
-    let getter get t at = t (get at)
-  end)
+  let getter get t at = t (get at)
+end)
 
 let geti t at = Concrete_getter.access t Fn.id ([], at)
 
@@ -1870,26 +1870,26 @@ let get t at =
 ;;
 
 module Concrete_optional_getter = Optional_getter.Make_access3 (struct
-    type ('a, _, 'r) t = 'a -> 'r option
+  type ('a, _, 'r) t = 'a -> 'r option
 
-    let optional_getter get t at = Option.bind (get at) ~f:t
-  end)
+  let optional_getter get t at = Option.bind (get at) ~f:t
+end)
 
 let get_optioni t at = Concrete_optional_getter.access t Option.some ([], at)
 let get_option t at = Option.map (get_optioni t at) ~f:(fun ([], a) -> a)
 
 module Match_ = Optional.Make_access3 (struct
-    type ('at, 'bt, 'a) t = 'at -> ('a, 'bt) Either.t
+  type ('at, 'bt, 'a) t = 'at -> ('a, 'bt) Either.t
 
-    let optional match_ t att =
-      match match_ att with
-      | Either.First (at, construct) ->
-        (match t at with
-         | Either.First _ as a -> a
-         | Second b -> Second (construct b))
-      | Second _ as bt -> bt
-    ;;
-  end)
+  let optional match_ t att =
+    match match_ att with
+    | Either.First (at, construct) ->
+      (match t at with
+       | Either.First _ as a -> a
+       | Second b -> Second (construct b))
+    | Second _ as bt -> bt
+  ;;
+end)
 
 let matchi t at = Match_.access t Either.first ([], at)
 let match_ t at = Either.First.map (matchi t at) ~f:(fun ([], a) -> a)
@@ -1968,8 +1968,8 @@ let disjoint_field_product t1 t2 =
 let disjoint_merge t1 t2 =
   disjoint_field_product (many_to_list_field t1) (many_to_list_field t2)
   @> many (fun (a, b) ->
-    let open Many.Let_syntax in
-    let%map_open a = Many.all (List.map a ~f:access)
-    and b = Many.all (List.map b ~f:access) in
-    a, b)
+       let open Many.Let_syntax in
+       let%map_open a = Many.all (List.map a ~f:access)
+       and b = Many.all (List.map b ~f:access) in
+       a, b)
 ;;

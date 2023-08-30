@@ -1,7 +1,6 @@
 open! Base
 open! Import
 
-
 module type Subtyping = sig
   (** The subtyping scheme for accessors involves the following "feature" types. Each kind
       of accessor is defined by the features it has. If an accessor A's features is a

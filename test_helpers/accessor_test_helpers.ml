@@ -54,11 +54,11 @@ module Testable = struct
 end
 
 let test
-      (type e a)
-      (module Env : Quickcheckable.S with type t = e)
-      (module T : Quickcheckable.S with type t = a)
-      accessor
-      ~f
+  (type e a)
+  (module Env : Quickcheckable.S with type t = e)
+  (module T : Quickcheckable.S with type t = a)
+  accessor
+  ~f
   =
   Quickcheck.test
     [%quickcheck.generator: Env.t * T.t]
@@ -68,11 +68,11 @@ let test
 ;;
 
 let mapper
-      (type a at)
-      (module A : Testable.S with type t = a)
-      (module At : Testable.S with type t = at)
-      env
-      accessor
+  (type a at)
+  (module A : Testable.S with type t = a)
+  (module At : Testable.S with type t = at)
+  env
+  accessor
   =
   test
     env
@@ -92,11 +92,11 @@ let mapper
 ;;
 
 let many
-      (type a at)
-      (module A : Testable.S with type t = a)
-      (module At : Testable.S with type t = at)
-      env
-      accessor
+  (type a at)
+  (module A : Testable.S with type t = a)
+  (module At : Testable.S with type t = at)
+  env
+  accessor
   =
   let module X : sig
     type 'a t [@@deriving compare, quickcheck, sexp_of]
@@ -108,12 +108,12 @@ let many
       type 'a t = A.t list * 'a [@@deriving compare, quickcheck, sexp_of]
 
       include Applicative.Make_using_map2 (struct
-          type 'a t = A.t list * 'a
+        type 'a t = A.t list * 'a
 
-          let return a = [], a
-          let map = `Define_using_map2
-          let map2 (xs, a) (ys, b) ~f = xs @ ys, f a b
-        end)
+        let return a = [], a
+        let map = `Define_using_map2
+        let map2 (xs, a) (ys, b) ~f = xs @ ys, f a b
+      end)
     end
 
     include T
@@ -147,11 +147,11 @@ let many
 ;;
 
 let nonempty
-      (type a at)
-      (module A : Testable.S with type t = a)
-      (module At : Testable.S with type t = at)
-      env
-      accessor
+  (type a at)
+  (module A : Testable.S with type t = a)
+  (module At : Testable.S with type t = at)
+  env
+  accessor
   =
   let module X : sig
     type 'a t [@@deriving compare, quickcheck, sexp_of]
@@ -163,14 +163,14 @@ let nonempty
       type 'a t = A.t Nonempty_list.t * 'a [@@deriving compare, quickcheck, sexp_of]
 
       include Applicative_without_return.Make (struct
-          type 'a t = A.t Nonempty_list.t * 'a
+        type 'a t = A.t Nonempty_list.t * 'a
 
-          let map (xs, a) ~f = xs, f a
+        let map (xs, a) ~f = xs, f a
 
-          let apply (xs, f) (ys, a) =
-            Nonempty_list.append xs (Nonempty_list.to_list ys), f a
-          ;;
-        end)
+        let apply (xs, f) (ys, a) =
+          Nonempty_list.append xs (Nonempty_list.to_list ys), f a
+        ;;
+      end)
     end
 
     include T
@@ -183,11 +183,11 @@ let nonempty
       type 'a t = 'a X.t Y.t
 
       include Applicative_without_return.Make (struct
-          type 'a t = 'a X.t Y.t
+        type 'a t = 'a X.t Y.t
 
-          let map t ~f = Y.map t ~f:(X.map ~f)
-          let apply f a = Y.apply (Y.map f ~f:X.apply) a
-        end)
+        let map t ~f = Y.map t ~f:(X.map ~f)
+        let apply f a = Y.apply (Y.map f ~f:X.apply) a
+      end)
     end
 
     include T
@@ -208,11 +208,11 @@ let nonempty
 ;;
 
 let optional
-      (type a at)
-      (module A : Testable.S with type t = a)
-      (module At : Testable.S with type t = at)
-      env
-      accessor
+  (type a at)
+  (module A : Testable.S with type t = a)
+  (module At : Testable.S with type t = at)
+  env
+  accessor
   =
   test
     env
@@ -242,11 +242,11 @@ let optional
 ;;
 
 let field
-      (type a at)
-      (module A : Testable.S with type t = a)
-      (module At : Testable.S with type t = at)
-      env
-      accessor
+  (type a at)
+  (module A : Testable.S with type t = a)
+  (module At : Testable.S with type t = at)
+  env
+  accessor
   =
   test
     env
@@ -267,11 +267,11 @@ let field
 ;;
 
 let variant
-      (type a at)
-      (module A : Testable.S with type t = a)
-      (module At : Testable.S with type t = at)
-      env
-      accessor
+  (type a at)
+  (module A : Testable.S with type t = a)
+  (module At : Testable.S with type t = at)
+  env
+  accessor
   =
   test
     env
@@ -295,11 +295,11 @@ let variant
 ;;
 
 let isomorphism
-      (type a at)
-      (module A : Testable.S with type t = a)
-      (module At : Testable.S with type t = at)
-      env
-      accessor
+  (type a at)
+  (module A : Testable.S with type t = a)
+  (module At : Testable.S with type t = at)
+  env
+  accessor
   =
   test
     env

@@ -178,7 +178,7 @@ module Indexed : sig
     ( 'inner_index * 'outer_index -> 'inner -> 'inner
     , 'outer_index -> 'outer -> 'outer
     , 'kind )
-      General.t
+    General.t
     constraint 'index = 'inner_index * 'outer_index
 end
 
@@ -567,43 +567,43 @@ val set
 module Functor : sig
   module type S =
     Functor_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Functor_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Functor_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative : sig
   module type S =
     Applicative_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Applicative_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Applicative_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Applicative_without_return : sig
   module type S =
     Applicative_without_return_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Applicative_without_return_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Applicative_without_return_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 (** The monad signatures differ from the applicative ones in that some of the functions
@@ -614,29 +614,29 @@ end
 module Monad : sig
   module type S =
     Monad_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Monad_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Monad_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 module Monad_without_return : sig
   module type S =
     Monad_without_return_s
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S2 =
     Monad_without_return_s2
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 
   module type S3 =
     Monad_without_return_s3
-    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+      with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 end
 
 (** {4 Functors} *)
@@ -645,51 +645,51 @@ end
     under some "functor", which is like a monad or applicative, except that it only
     supports [map]. *)
 module Of_functor (F : sig
-    type 'a t
+  type 'a t
 
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-  end) : Functor.S with type 'a t := 'a F.t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+end) : Functor.S with type 'a t := 'a F.t
 
 module Of_functor2 (F : sig
-    type ('a, 'd) t
+  type ('a, 'd) t
 
-    val map : ('a, 'd) t -> f:('a -> 'b) -> ('b, 'd) t
-  end) : Functor.S2 with type ('a, 'd) t := ('a, 'd) F.t
+  val map : ('a, 'd) t -> f:('a -> 'b) -> ('b, 'd) t
+end) : Functor.S2 with type ('a, 'd) t := ('a, 'd) F.t
 
 module Of_functor3 (F : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-  end) : Functor.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) F.t
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+end) : Functor.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) F.t
 
 (** [Of_applicative] and [Of_applicative2] can be used to generate map-like functions
     that can use applicative effects. See also [Of_monad], which gives more control over
     the relationship between side effects and monadic effects. *)
 module Of_applicative (A : sig
-    type 'a t
+  type 'a t
 
-    val return : 'a -> 'a t
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-    val apply : ('a -> 'b) t -> 'a t -> 'b t
-  end) : Applicative.S with type 'a t := 'a A.t
+  val return : 'a -> 'a t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val apply : ('a -> 'b) t -> 'a t -> 'b t
+end) : Applicative.S with type 'a t := 'a A.t
 
 (** See [Of_applicative]. *)
 module Of_applicative2 (A : sig
-    type ('a, 'e) t
+  type ('a, 'e) t
 
-    val return : 'a -> ('a, _) t
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
-    val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
-  end) : Applicative.S2 with type ('a, 'e) t := ('a, 'e) A.t
+  val return : 'a -> ('a, _) t
+  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+  val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
+end) : Applicative.S2 with type ('a, 'e) t := ('a, 'e) A.t
 
 (** See [Of_applicative]. *)
 module Of_applicative3 (A : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val return : 'a -> ('a, _, _) t
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-    val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
-  end) : Applicative.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t
+  val return : 'a -> ('a, _, _) t
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+  val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+end) : Applicative.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t
 
 (** [Of_monad] is similar to [Of_applicative]. There are two differences.
 
@@ -708,87 +708,87 @@ module Of_applicative3 (A : sig
       would apply [f] to everything and then wait for the results to become determined
       asynchronously. *)
 module Of_monad (M : sig
-    type 'a t
+  type 'a t
 
-    val return : 'a -> 'a t
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-    val apply : [ `Custom of ('a -> 'b) t -> 'a t -> 'b t | `Define_using_bind ]
-    val bind : 'a t -> f:('a -> 'b t) -> 'b t
-  end) : Monad.S with type 'a t := 'a M.t
+  val return : 'a -> 'a t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val apply : [ `Custom of ('a -> 'b) t -> 'a t -> 'b t | `Define_using_bind ]
+  val bind : 'a t -> f:('a -> 'b t) -> 'b t
+end) : Monad.S with type 'a t := 'a M.t
 
 (** See [Of_monad]. *)
 module Of_monad2 (M : sig
-    type ('a, 'e) t
+  type ('a, 'e) t
 
-    val return : 'a -> ('a, _) t
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+  val return : 'a -> ('a, _) t
+  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
 
-    val apply
-      : [ `Custom of ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t | `Define_using_bind ]
+  val apply
+    : [ `Custom of ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t | `Define_using_bind ]
 
-    val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
-  end) : Monad.S2 with type ('a, 'e) t := ('a, 'e) M.t
+  val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
+end) : Monad.S2 with type ('a, 'e) t := ('a, 'e) M.t
 
 (** See [Of_monad]. *)
 module Of_monad3 (M : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val return : 'a -> ('a, _, _) t
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+  val return : 'a -> ('a, _, _) t
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
 
-    val apply
-      : [ `Custom of ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
-        | `Define_using_bind
-        ]
+  val apply
+    : [ `Custom of ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+      | `Define_using_bind
+      ]
 
-    val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
-  end) : Monad.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) M.t
+  val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
+end) : Monad.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) M.t
 
 (** Like [Of_applicative], but without [return]. *)
 module Of_applicative_without_return (A : sig
-    type 'a t
+  type 'a t
 
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-    val apply : ('a -> 'b) t -> 'a t -> 'b t
-  end) : Applicative_without_return.S with type 'a t := 'a A.t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val apply : ('a -> 'b) t -> 'a t -> 'b t
+end) : Applicative_without_return.S with type 'a t := 'a A.t
 
 (** Like [Of_applicative2], but without [return]. *)
 module Of_applicative_without_return2 (A : sig
-    type ('a, 'e) t
+  type ('a, 'e) t
 
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
-    val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
-  end) : Applicative_without_return.S2 with type ('a, 'e) t := ('a, 'e) A.t
+  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+  val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
+end) : Applicative_without_return.S2 with type ('a, 'e) t := ('a, 'e) A.t
 
 module Of_applicative_without_return3 (A : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-    val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
-  end) : Applicative_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+  val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+end) : Applicative_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t
 
 (** Like [Of_monad], but without [return]. *)
 module Of_monad_without_return (A : sig
-    type 'a t
+  type 'a t
 
-    val map : 'a t -> f:('a -> 'b) -> 'b t
-    val bind : 'a t -> f:('a -> 'b t) -> 'b t
-  end) : Monad_without_return.S with type 'a t := 'a A.t
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val bind : 'a t -> f:('a -> 'b t) -> 'b t
+end) : Monad_without_return.S with type 'a t := 'a A.t
 
 (** Like [Of_monad2], but without [return]. *)
 module Of_monad_without_return2 (A : sig
-    type ('a, 'e) t
+  type ('a, 'e) t
 
-    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
-    val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
-  end) : Monad_without_return.S2 with type ('a, 'e) t := ('a, 'e) A.t
+  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+  val bind : ('a, 'e) t -> f:('a -> ('b, 'e) t) -> ('b, 'e) t
+end) : Monad_without_return.S2 with type ('a, 'e) t := ('a, 'e) A.t
 
 module Of_monad_without_return3 (A : sig
-    type ('a, 'd, 'e) t
+  type ('a, 'd, 'e) t
 
-    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-    val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
-  end) : Monad_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t
+  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+  val bind : ('a, 'd, 'e) t -> f:('a -> ('b, 'd, 'e) t) -> ('b, 'd, 'e) t
+end) : Monad_without_return.S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) A.t
 
 (** {3 Recursive update} *)
 
@@ -854,7 +854,7 @@ val construct : (_ -> _ -> 'b, _ -> _ -> 'bt, [> constructor ]) General.t -> 'b 
 
 include
   Custom_mappings_intf.S
-  with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
+    with type ('inner, 'outer, 'kind) accessor := ('inner, 'outer, 'kind) General.t
 (** @inline *)
 
 (** {1 Creating accessors} *)
