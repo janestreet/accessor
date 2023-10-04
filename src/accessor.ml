@@ -789,6 +789,17 @@ module Prim = struct
     }
   ;;
 
+  let add_to_index =
+    { f =
+        (fun dictionary ->
+          Dictionary.Run.isomorphism
+            dictionary
+            ~get:(fun (i, a) -> Index.(a :: i), a)
+            ~construct:Fn.id
+          |> Mapping.with_hk)
+    }
+  ;;
+
   let filter_index f =
     { f =
         (fun dictionary ->

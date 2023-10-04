@@ -1033,6 +1033,11 @@ val map_index
   :  ('i Index.t -> 'j Index.t)
   -> ('j -> 'a -> 'b, 'i -> 'a -> 'b, [< isomorphism ]) General.t
 
+(** [add_to_index] adds the value to index without making any changes to the value. It's
+    useful for marking the current value before doing further transformations. It's
+    equivalent to [isomorphismi ~get:(fun x -> x, x) ~construct:Fn.id]. *)
+val add_to_index : ('a * 'i -> 'a -> 'b, 'i -> 'a -> 'b, [< isomorphism ]) General.t
+
 (** {3 Mapper accessors} *)
 
 (** [mapper map] creates a mapper accessor. A mapper can modify values inside a

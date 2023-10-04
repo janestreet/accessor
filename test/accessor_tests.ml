@@ -75,3 +75,14 @@ let%expect_test "disjoint_merge" =
   print_s [%sexp (Accessor.map each a ~f:succ : Foo.t)];
   [%expect {| ((x 43) (y 1338)) |}]
 ;;
+
+let%expect_test "add_to_index" =
+  let x = 42 in
+  Accessor.iteri Accessor.add_to_index x ~f:(fun [ index ] value ->
+    print_s [%message "" (index : int) (value : int)]);
+  [%expect {| ((index 42) (value 42)) |}];
+  Accessor.mapi Accessor.add_to_index x ~f:(fun [ index ] value ->
+    [%message "" (index : int) (value : int)])
+  |> print_s;
+  [%expect {| ((index 42) (value 42)) |}]
+;;
