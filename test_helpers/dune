@@ -1,3 +1,5 @@
-(library (name accessor_test_helpers)
+(library
+ (name accessor_test_helpers)
  (libraries accessor core core_kernel.nonempty_list)
- (preprocess (pps ppx_jane ppx_accessor)))
+ (preprocess
+  (pps ppx_jane ppx_accessor)))

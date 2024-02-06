@@ -1,2 +1,5 @@
-(library (name accessor_tests) (libraries accessor core)
- (preprocess (pps ppx_jane ppx_accessor)))
+(library
+ (name accessor_tests)
+ (libraries accessor core)
+ (preprocess
+  (pps ppx_jane ppx_accessor)))

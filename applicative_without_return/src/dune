@@ -1,3 +1,6 @@
-(library (name applicative_without_return)
- (public_name accessor.applicative_without_return) (libraries base)
- (preprocess (pps ppx_jane)))
+(library
+ (name applicative_without_return)
+ (public_name accessor.applicative_without_return)
+ (libraries base)
+ (preprocess
+  (pps ppx_jane)))

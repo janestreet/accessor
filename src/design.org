@@ -351,7 +351,7 @@ should read it first.
 
 *** Higher rank types
 
-   In Ocaml, the only way to define a higher rank type is by making it a record
+   In OCaml, the only way to define a higher rank type is by making it a record
    field or put it in a first class module. In some terrible syntax resembling
    OCaml with higher kinded types and type classes, that turns the above Haskell
    type into something like this:
