@@ -14,7 +14,7 @@ depends: [
   "base"
   "higher_kinded"
   "ppx_jane"
-  "dune"          {>= "2.0.0"}
+  "dune"          {>= "3.11.0"}
 ]
 available: arch != "arm32" & arch != "x86_32"
 synopsis: "A library that makes it nicer to work with nested functional data structures"
