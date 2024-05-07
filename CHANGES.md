@@ -1,3 +1,8 @@
+## Release v0.17.0
+
+- `Accessor.add_to_index`
+  * Adds a value to the index without altering the value
+
 ## Release v0.16.0
 
 - `Accessor.dummy`
