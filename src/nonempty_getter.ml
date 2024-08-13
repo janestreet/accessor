@@ -6,17 +6,17 @@ type 'a t = { f : 'r. combine:('r -> 'r -> 'r) -> f:('a -> 'r) -> 'r } [@@unboxe
 let access a = { f = (fun ~combine:_ ~f -> f a) }
 
 include Monad.Make (struct
-  type nonrec 'a t = 'a t
+    type nonrec 'a t = 'a t
 
-  let return = access
-  let map t ~f = { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> g (f a))) }
+    let return = access
+    let map t ~f = { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> g (f a))) }
 
-  let bind t ~f =
-    { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> (f a).f ~combine ~f:g)) }
-  ;;
+    let bind t ~f =
+      { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> (f a).f ~combine ~f:g)) }
+    ;;
 
-  let map = `Custom map
-end)
+    let map = `Custom map
+  end)
 
 let map_reduce t = t.f
 
@@ -31,10 +31,10 @@ end
 include O
 
 include Nonempty.Of_applicative_without_return2 (struct
-  type nonrec (_, 'a) t = 'a t
+    type nonrec (_, 'a) t = 'a t
 
-  let map t ~f:_ = t
-  let apply = append
-end)
+    let map t ~f:_ = t
+    let apply = append
+  end)
 
 let of_nonempty nonempty = of_nonempty nonempty ~access

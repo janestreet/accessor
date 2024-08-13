@@ -17,23 +17,23 @@ module T = struct
   let access a = { f = (fun _ ~access -> access a) }
 
   include Base.Applicative.Make3 (struct
-    type nonrec ('bt, 'a, 'b) t = ('bt, 'a, 'b) t
+      type nonrec ('bt, 'a, 'b) t = ('bt, 'a, 'b) t
 
-    let return a = { f = (fun applicative ~access:_ -> applicative.return a) }
+      let return a = { f = (fun applicative ~access:_ -> applicative.return a) }
 
-    let map t ~f =
-      { f = (fun applicative ~access -> applicative.map (t.f applicative ~access) ~f) }
-    ;;
+      let map t ~f =
+        { f = (fun applicative ~access -> applicative.map (t.f applicative ~access) ~f) }
+      ;;
 
-    let map = `Custom map
+      let map = `Custom map
 
-    let apply t1 t2 =
-      { f =
-          (fun applicative ~access ->
-            applicative.apply (t1.f applicative ~access) (t2.f applicative ~access))
-      }
-    ;;
-  end)
+      let apply t1 t2 =
+        { f =
+            (fun applicative ~access ->
+              applicative.apply (t1.f applicative ~access) (t2.f applicative ~access))
+        }
+      ;;
+    end)
 end
 
 include T
@@ -51,31 +51,31 @@ include
     end)
 
 module Accessed = Monad.Make_indexed (struct
-  type nonrec ('a, 'bt, 'b) t = ('bt, 'a, 'b) t
+    type nonrec ('a, 'bt, 'b) t = ('bt, 'a, 'b) t
 
-  let return = access
+    let return = access
 
-  let map t ~f =
-    { f = (fun applicative ~access -> t.f applicative ~access:(fun a -> access (f a))) }
-  ;;
+    let map t ~f =
+      { f = (fun applicative ~access -> t.f applicative ~access:(fun a -> access (f a))) }
+    ;;
 
-  let bind t ~f =
-    { f =
-        (fun applicative ~access ->
-          t.f applicative ~access:(fun a -> (f a).f applicative ~access))
-    }
-  ;;
+    let bind t ~f =
+      { f =
+          (fun applicative ~access ->
+            t.f applicative ~access:(fun a -> (f a).f applicative ~access))
+      }
+    ;;
 
-  let map = `Custom map
-end)
+    let map = `Custom map
+  end)
 
 module Of_applicative3 (A : sig
-  type ('a, 'd, 'e) t
+    type ('a, 'd, 'e) t
 
-  val return : 'a -> ('a, _, _) t
-  val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
-  val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
-end) =
+    val return : 'a -> ('a, _, _) t
+    val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
+    val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
+  end) =
 struct
   module H = Hk.Make3 (A)
 
@@ -92,30 +92,30 @@ struct
 end
 
 module Of_applicative2 (A : sig
-  type ('a, 'e) t
+    type ('a, 'e) t
 
-  val return : 'a -> ('a, _) t
-  val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
-  val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
-end) =
+    val return : 'a -> ('a, _) t
+    val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
+    val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
+  end) =
 Of_applicative3 (struct
-  type ('a, _, 'e) t = ('a, 'e) A.t
+    type ('a, _, 'e) t = ('a, 'e) A.t
 
-  include (A : module type of A with type ('a, 'e) t := ('a, 'e) A.t)
-end)
+    include (A : module type of A with type ('a, 'e) t := ('a, 'e) A.t)
+  end)
 
 module Of_applicative (A : sig
-  type 'a t
+    type 'a t
 
-  val return : 'a -> 'a t
-  val map : 'a t -> f:('a -> 'b) -> 'b t
-  val apply : ('a -> 'b) t -> 'a t -> 'b t
-end) =
+    val return : 'a -> 'a t
+    val map : 'a t -> f:('a -> 'b) -> 'b t
+    val apply : ('a -> 'b) t -> 'a t -> 'b t
+  end) =
 Of_applicative2 (struct
-  type ('a, _) t = 'a A.t
+    type ('a, _) t = 'a A.t
 
-  include (A : module type of A with type 'a t := 'a A.t)
-end)
+    include (A : module type of A with type 'a t := 'a A.t)
+  end)
 
 include Nonempty.Of_applicative_without_return3 (T)
 

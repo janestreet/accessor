@@ -7,8 +7,8 @@ type ('m, 'w) t = T : ('i Index.t * 'a, 'b, 'w) Hk.t2 -> ('i -> 'a -> 'b, 'w) t
 let with_hk f (T t) = T (f t)
 
 module Make4 (T : sig
-  type ('a, 'b, 'c, 'd) t
-end) =
+    type ('a, 'b, 'c, 'd) t
+  end) =
 struct
   include Hk.Make4 (T)
 

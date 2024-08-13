@@ -108,12 +108,12 @@ let many
       type 'a t = A.t list * 'a [@@deriving compare, quickcheck, sexp_of]
 
       include Applicative.Make_using_map2 (struct
-        type 'a t = A.t list * 'a
+          type 'a t = A.t list * 'a
 
-        let return a = [], a
-        let map = `Define_using_map2
-        let map2 (xs, a) (ys, b) ~f = xs @ ys, f a b
-      end)
+          let return a = [], a
+          let map = `Define_using_map2
+          let map2 (xs, a) (ys, b) ~f = xs @ ys, f a b
+        end)
     end
 
     include T
@@ -163,14 +163,14 @@ let nonempty
       type 'a t = A.t Nonempty_list.t * 'a [@@deriving compare, quickcheck, sexp_of]
 
       include Applicative_without_return.Make (struct
-        type 'a t = A.t Nonempty_list.t * 'a
+          type 'a t = A.t Nonempty_list.t * 'a
 
-        let map (xs, a) ~f = xs, f a
+          let map (xs, a) ~f = xs, f a
 
-        let apply (xs, f) (ys, a) =
-          Nonempty_list.append xs (Nonempty_list.to_list ys), f a
-        ;;
-      end)
+          let apply (xs, f) (ys, a) =
+            Nonempty_list.append xs (Nonempty_list.to_list ys), f a
+          ;;
+        end)
     end
 
     include T
@@ -183,11 +183,11 @@ let nonempty
       type 'a t = 'a X.t Y.t
 
       include Applicative_without_return.Make (struct
-        type 'a t = 'a X.t Y.t
+          type 'a t = 'a X.t Y.t
 
-        let map t ~f = Y.map t ~f:(X.map ~f)
-        let apply f a = Y.apply (Y.map f ~f:X.apply) a
-      end)
+          let map t ~f = Y.map t ~f:(X.map ~f)
+          let apply f a = Y.apply (Y.map f ~f:X.apply) a
+        end)
     end
 
     include T

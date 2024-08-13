@@ -29,13 +29,13 @@ module Make3 (X : Basic3) : S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) X.t = st
 end
 
 module Make2 (X : Basic2) : S2 with type ('a, 'e) t := ('a, 'e) X.t = Make3 (struct
-  type ('a, _, 'e) t = ('a, 'e) X.t
+    type ('a, _, 'e) t = ('a, 'e) X.t
 
-  include (X : module type of X with type ('a, 'e) t := ('a, 'e) X.t)
-end)
+    include (X : module type of X with type ('a, 'e) t := ('a, 'e) X.t)
+  end)
 
 module Make (X : Basic) : S with type 'a t := 'a X.t = Make2 (struct
-  type ('a, _) t = 'a X.t
+    type ('a, _) t = 'a X.t
 
-  include (X : module type of X with type 'a t := 'a X.t)
-end)
+    include (X : module type of X with type 'a t := 'a X.t)
+  end)

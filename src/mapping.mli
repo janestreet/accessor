@@ -11,8 +11,8 @@ val with_hk
   -> ('e -> 'f -> 'g, 'h) t
 
 module Make4 (T : sig
-  type ('a, 'b, 'c, 'd) t
-end) : sig
+    type ('a, 'b, 'c, 'd) t
+  end) : sig
   include Hk.S4 with type ('a, 'b, 'c, 'd) t := ('a, 'b, 'c, 'd) T.t
 
   val projected
