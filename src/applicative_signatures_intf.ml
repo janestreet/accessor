@@ -263,12 +263,45 @@ module type Applicative_without_return_s = sig
   include Applicative_without_return_s2 with type ('a, _) t := 'a t
 end
 
-module type Monad_s3 =
-  Applicative_general with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
+module type Monad_s3 = sig
+  include
+    Applicative_general
+    with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
 
-module type Monad_without_return_s3 =
-  Applicative_without_return_general
-  with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
+  val fold
+    :  (unit -> 'a -> _, unit -> 'at -> _, [> many_getter ]) accessor
+    -> 'at
+    -> init:'acc
+    -> f:('acc -> 'a -> ('acc, 'd, 'e) t)
+    -> ('acc, 'd, 'e) t
+
+  val foldi
+    :  ('i -> 'a -> _, unit -> 'at -> _, [> many_getter ]) accessor
+    -> 'at
+    -> init:'acc
+    -> f:('i Index.t -> 'acc -> 'a -> ('acc, 'd, 'e) t)
+    -> ('acc, 'd, 'e) t
+end
+
+module type Monad_without_return_s3 = sig
+  include
+    Applicative_without_return_general
+    with type 'a optional_args := ?how:[ `Parallel | `Sequential ] -> 'a
+
+  val fold
+    :  (unit -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
+    -> 'at
+    -> init:'acc
+    -> f:('acc -> 'a -> ('acc, 'd, 'e) t)
+    -> ('acc, 'd, 'e) t
+
+  val foldi
+    :  ('i -> 'a -> _, unit -> 'at -> _, [> nonempty_getter ]) accessor
+    -> 'at
+    -> init:'acc
+    -> f:('i Index.t -> 'acc -> 'a -> ('acc, 'd, 'e) t)
+    -> ('acc, 'd, 'e) t
+end
 
 module type Monad_s2 = sig
   type ('a, 'e) t
