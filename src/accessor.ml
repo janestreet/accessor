@@ -1235,6 +1235,26 @@ module Of_monad3 (M : sig
       ;;
     end)
 
+  let fold t at ~init ~f =
+    Prim.map_reduce
+      t
+      at
+      ~empty:M.return
+      ~combine:(fun l r acc -> M.bind (l acc) ~f:r)
+      ~f:(fun x acc -> f acc x)
+      init
+  ;;
+
+  let foldi t at ~init ~f =
+    Prim.map_reducei
+      t
+      at
+      ~empty:M.return
+      ~combine:(fun l r acc -> M.bind (l acc) ~f:r)
+      ~f:(fun i x acc -> f i acc x)
+      init
+  ;;
+
   let map ?(how = `Sequential) t at ~f =
     match how with
     | `Sequential -> Sequential.map t at ~f
@@ -1524,6 +1544,24 @@ module Of_monad_without_return3 (M : sig
       let map t ~f = M.map t ~f
       let apply t1 t2 = M.bind t1 ~f:(fun f -> M.map t2 ~f)
     end)
+
+  let fold t at ~init ~f =
+    Prim.map_reduce_nonempty
+      t
+      at
+      ~combine:(fun l r acc -> M.bind (l acc) ~f:r)
+      ~f:(fun x acc -> f acc x)
+      init
+  ;;
+
+  let foldi t at ~init ~f =
+    Prim.map_reduce_nonemptyi
+      t
+      at
+      ~combine:(fun l r acc -> M.bind (l acc) ~f:r)
+      ~f:(fun i x acc -> f i acc x)
+      init
+  ;;
 
   let map ?(how = `Sequential) t at ~f =
     match how with
