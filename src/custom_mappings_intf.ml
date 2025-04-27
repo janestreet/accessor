@@ -160,16 +160,15 @@ module type S = sig
               Fn.compose
                 (variant ~match_:m1 ~construct:c1)
                 (variant ~match_:m2 ~construct:c2)
-              =
-              variant
-                ~match_:(fun a ->
-                  match m1 a with
-                  | Second _ as a -> a
-                  | First a ->
-                    match m2 a with
-                    | First _ as a -> a
-                    | Second a -> Second (c1 a))
-                ~construct:(Fn.compose c1 c2)
+              = variant
+                  ~match_:(fun a ->
+                    match m1 a with
+                    | Second _ as a -> a
+                    | First a ->
+                      (match m2 a with
+                       | First _ as a -> a
+                       | Second a -> Second (c1 a)))
+                  ~construct:(Fn.compose c1 c2)
             ]} *)
         val variant
           :  match_:('at -> ('a, 'bt) Either.t)
@@ -314,14 +313,13 @@ module type S = sig
 
             {[
               Fn.compose (optional f) (optional g)
-              =
-              optional (fun a ->
+              = optional (fun a ->
                 match f a with
                 | Second _ as a -> a
                 | First (a, j) ->
-                  match g a with
-                  | First (a, k) -> First (a, Fn.compose j k)
-                  | Second a -> Second (j a))
+                  (match g a with
+                   | First (a, k) -> First (a, Fn.compose j k)
+                   | Second a -> Second (j a)))
             ]} *)
         val optional
           :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
@@ -375,8 +373,7 @@ module type S = sig
 
             {[
               Fn.compose (optional_getter f) (optional_getter g)
-              =
-              optional_getter (fun a -> Option.bind (f a) ~f:g)
+              = optional_getter (fun a -> Option.bind (f a) ~f:g)
             ]} *)
         val optional_getter : ('at -> 'a option) -> ('a, 'b) t -> ('at, 'bt) t
       end) : sig
@@ -507,8 +504,7 @@ module type S = sig
 
             {[
               Fn.compose (nonempty_getter f) (nonempty_getter g)
-              =
-              nonempty_getter (fun at -> Nonempty_getter.bind (f at) ~f:g)
+              = nonempty_getter (fun at -> Nonempty_getter.bind (f at) ~f:g)
             ]} *)
         val nonempty_getter : ('at -> 'a Nonempty_getter.t) -> ('a, 'b) t -> ('at, 'bt) t
       end) : sig

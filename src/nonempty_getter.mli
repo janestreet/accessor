@@ -10,8 +10,7 @@ include Monad.S with type 'a t := 'a t
 (** [access a] "accesses" [a]. *)
 val access : 'a -> 'a t
 
-(** [append a b] accesses everything [a] accesses, then accesses everything [b] accesses.
-*)
+(** [append a b] accesses everything [a] accesses, then accesses everything [b] accesses. *)
 val append : 'a t -> 'a t -> 'a t
 
 module O : sig
