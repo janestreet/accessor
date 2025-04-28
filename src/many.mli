@@ -4,10 +4,9 @@ open! Import
 (** An [(a, x, y) t] is an applicative for defining [many] accessors. See the
     documentation of [Accessor.many] for more information.
 
-    A value of type [(a, x, y) t] can make the following claim:
-    I can give you some number of [x]es and if you tell me how to replace each of them
-    with a [y], I will also give you an [a].
-*)
+    A value of type [(a, x, y) t] can make the following claim: I can give you some number
+    of [x]es and if you tell me how to replace each of them with a [y], I will also give
+    you an [a]. *)
 type ('a, +'x, 'y) t
 
 module Accessed : Monad.S_indexed with type ('x, 'a, 'y) t := ('a, 'x, 'y) t

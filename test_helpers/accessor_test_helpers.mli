@@ -9,7 +9,7 @@ end
 
 module Testable : sig
   module type S = sig
-    type t [@@deriving compare, quickcheck, sexp_of]
+    type t [@@deriving equal, quickcheck, sexp_of]
   end
 
   module Either (A : S) (B : S) : S with type t = (A.t, B.t) Either.t

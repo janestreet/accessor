@@ -13,8 +13,7 @@ val access : 'a -> 'a t
 (** Don't access anything. *)
 val empty : _ t
 
-(** [append a b] accesses everything [a] accesses, then accesses everything [b] accesses.
-*)
+(** [append a b] accesses everything [a] accesses, then accesses everything [b] accesses. *)
 val append : 'a t -> 'a t -> 'a t
 
 (** Append all the [t]s in a list together. *)
