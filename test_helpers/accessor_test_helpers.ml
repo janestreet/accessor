@@ -87,12 +87,8 @@ let mapper
   env
   accessor
   =
-  test
-    env
-    (module At)
-    accessor
-    ~f:(fun accessor at ->
-      test_eq [%equal: At.t] [%sexp_of: At.t] (Accessor.map accessor at ~f:Fn.id) at);
+  test env (module At) accessor ~f:(fun accessor at ->
+    test_eq [%equal: At.t] [%sexp_of: At.t] (Accessor.map accessor at ~f:Fn.id) at);
   test
     env
     (module struct
@@ -143,16 +139,12 @@ let many
     module Accessor = Accessor.Of_applicative (T)
   end
   in
-  test
-    env
-    (module At)
-    accessor
-    ~f:(fun accessor at ->
-      test_eq
-        [%equal: At.t X.t]
-        [%sexp_of: At.t X.t]
-        (X.Accessor.map accessor at ~f:X.return)
-        (X.return at));
+  test env (module At) accessor ~f:(fun accessor at ->
+    test_eq
+      [%equal: At.t X.t]
+      [%sexp_of: At.t X.t]
+      (X.Accessor.map accessor at ~f:X.return)
+      (X.return at));
   test
     env
     (module struct
@@ -248,17 +240,13 @@ let optional
         [%sexp_of: (A.t, At.t) Either.t]
         (Accessor.match_ accessor (at.@(accessor) <- a))
         (Either.First.map (Accessor.match_ accessor at) ~f:(const a)));
-  test
-    env
-    (module At)
-    accessor
-    ~f:(fun accessor at ->
-      let bt =
-        match Accessor.match_ accessor at with
-        | First a -> at.@(accessor) <- a
-        | Second bt -> bt
-      in
-      test_eq [%equal: At.t] [%sexp_of: At.t] at bt);
+  test env (module At) accessor ~f:(fun accessor at ->
+    let bt =
+      match Accessor.match_ accessor at with
+      | First a -> at.@(accessor) <- a
+      | Second bt -> bt
+    in
+    test_eq [%equal: At.t] [%sexp_of: At.t] at bt);
   test
     env
     (Quickcheckable.tuple (module At) (module A))
@@ -284,12 +272,8 @@ let field
     accessor
     ~f:(fun accessor (at, a) ->
       test_eq [%equal: A.t] [%sexp_of: A.t] (at.@(accessor) <- a).@(accessor) a);
-  test
-    env
-    (module At)
-    accessor
-    ~f:(fun accessor at ->
-      test_eq [%equal: At.t] [%sexp_of: At.t] (at.@(accessor) <- at.@(accessor)) at);
+  test env (module At) accessor ~f:(fun accessor at ->
+    test_eq [%equal: At.t] [%sexp_of: At.t] (at.@(accessor) <- at.@(accessor)) at);
   test
     env
     (Quickcheckable.tuple (module At) (module A))
@@ -309,27 +293,19 @@ let variant
   env
   accessor
   =
-  test
-    env
-    (module A)
-    accessor
-    ~f:(fun accessor a ->
-      test_eq
-        [%equal: (A.t, At.t) Either.t]
-        [%sexp_of: (A.t, At.t) Either.t]
-        (Accessor.match_ accessor (Accessor.construct accessor a))
-        (First a));
-  test
-    env
-    (module At)
-    accessor
-    ~f:(fun accessor at ->
-      let bt =
-        match Accessor.match_ accessor at with
-        | First a -> Accessor.construct accessor a
-        | Second bt -> bt
-      in
-      test_eq [%equal: At.t] [%sexp_of: At.t] at bt)
+  test env (module A) accessor ~f:(fun accessor a ->
+    test_eq
+      [%equal: (A.t, At.t) Either.t]
+      [%sexp_of: (A.t, At.t) Either.t]
+      (Accessor.match_ accessor (Accessor.construct accessor a))
+      (First a));
+  test env (module At) accessor ~f:(fun accessor at ->
+    let bt =
+      match Accessor.match_ accessor at with
+      | First a -> Accessor.construct accessor a
+      | Second bt -> bt
+    in
+    test_eq [%equal: At.t] [%sexp_of: At.t] at bt)
 ;;
 
 let isomorphism
@@ -339,20 +315,12 @@ let isomorphism
   env
   accessor
   =
-  test
-    env
-    (module A)
-    accessor
-    ~f:(fun accessor a ->
-      test_eq [%equal: A.t] [%sexp_of: A.t] (Accessor.construct accessor a).@(accessor) a);
-  test
-    env
-    (module At)
-    accessor
-    ~f:(fun accessor at ->
-      test_eq
-        [%equal: At.t]
-        [%sexp_of: At.t]
-        (Accessor.construct accessor at.@(accessor))
-        at)
+  test env (module A) accessor ~f:(fun accessor a ->
+    test_eq [%equal: A.t] [%sexp_of: A.t] (Accessor.construct accessor a).@(accessor) a);
+  test env (module At) accessor ~f:(fun accessor at ->
+    test_eq
+      [%equal: At.t]
+      [%sexp_of: At.t]
+      (Accessor.construct accessor at.@(accessor))
+      at)
 ;;

@@ -174,12 +174,8 @@ module Indexed : sig
   (** Accessors commonly don't need to support polymorphic updates, making [General.t]
       excessively verbose, but [t] is not useable for indexed accessors. In such cases,
       you can use [Indexed.t] to reduce some boilerplate. *)
-  type ('index, 'inner, 'outer, 'kind) t =
-    ( 'inner_index * 'outer_index -> 'inner -> 'inner
-      , 'outer_index -> 'outer -> 'outer
-      , 'kind )
-      General.t
-    constraint 'index = 'inner_index * 'outer_index
+  type ('inner_index, 'outer_index, 'inner, 'outer, 'kind) t =
+    ('inner_index -> 'inner -> 'inner, 'outer_index -> 'outer -> 'outer, 'kind) General.t
 end
 
 (** The [Subtyping] module contains all the types used for accessor subtyping. You
