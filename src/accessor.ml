@@ -18,12 +18,8 @@ type ('index, 'inner, 'outer, 'kind) t =
   ('index -> 'inner -> 'inner, 'index -> 'outer -> 'outer, 'kind) General.t
 
 module Indexed = struct
-  type ('index, 'inner, 'outer, 'kind) t =
-    ( 'inner_index * 'outer_index -> 'inner -> 'inner
-      , 'outer_index -> 'outer -> 'outer
-      , 'kind )
-      General.t
-    constraint 'index = 'inner_index * 'outer_index
+  type ('inner_index, 'outer_index, 'inner, 'outer, 'kind) t =
+    ('inner_index -> 'inner -> 'inner, 'outer_index -> 'outer -> 'outer, 'kind) General.t
 end
 
 module Prim = struct
