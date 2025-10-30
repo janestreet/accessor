@@ -1,6 +1,5 @@
 (library
  (name accessor_test_helpers)
- (libraries accessor applicative_without_return core
-   core_kernel.nonempty_list)
+ (libraries accessor applicative_without_return core)
  (preprocess
   (pps ppx_jane ppx_accessor)))
