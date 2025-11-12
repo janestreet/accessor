@@ -8,6 +8,6 @@
 (executables
  (modes byte exe)
  (names accessor_subtyping_diagram)
- (libraries core accessor)
+ (libraries accessor core)
  (preprocess
   (pps ppx_jane)))
