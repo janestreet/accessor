@@ -3,4 +3,4 @@
  (public_name accessor)
  (libraries applicative_without_return base higher_kinded)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

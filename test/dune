@@ -2,4 +2,4 @@
  (name accessor_tests)
  (libraries accessor core)
  (preprocess
-  (pps ppx_jane ppx_accessor)))
+  (pps ppx_jane -compare-require-explicit-locality ppx_accessor)))
