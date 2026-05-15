@@ -20,13 +20,16 @@ module Accessed = Monad.Make_indexed (struct
     let return = access
 
     let map t ~f =
-      { f = (fun applicative ~access -> t.f applicative ~access:(fun a -> access (f a))) }
+      { f =
+          (fun applicative ~access ->
+            t.f applicative ~access:(fun a -> access (f a)) [@nontail])
+      }
     ;;
 
     let bind t ~f =
       { f =
           (fun applicative ~access ->
-            t.f applicative ~access:(fun a -> (f a).f applicative ~access))
+            t.f applicative ~access:(fun a -> (f a).f applicative ~access) [@nontail])
       }
     ;;
 
@@ -37,13 +40,18 @@ module A1 = Applicative_without_return.Make3 (struct
     type nonrec ('bt, 'a, 'b) t = ('bt, 'a, 'b) t
 
     let map t ~f =
-      { f = (fun applicative ~access -> applicative.map (t.f applicative ~access) ~f) }
+      { f =
+          (fun applicative ~access ->
+            applicative.map (t.f applicative ~access) ~f [@nontail])
+      }
     ;;
 
     let apply t1 t2 =
       { f =
           (fun applicative ~access ->
-            applicative.apply (t1.f applicative ~access) (t2.f applicative ~access))
+            applicative.apply
+              (t1.f applicative ~access)
+              (t2.f applicative ~access) [@nontail])
       }
     ;;
   end)

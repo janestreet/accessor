@@ -9,10 +9,16 @@ include Monad.Make (struct
     type nonrec 'a t = 'a t
 
     let return = access
-    let map t ~f = { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> g (f a))) }
+
+    let map t ~f =
+      { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> g (f a)) [@nontail]) }
+    ;;
 
     let bind t ~f =
-      { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> (f a).f ~combine ~f:g)) }
+      { f =
+          (fun ~combine ~f:g ->
+            t.f ~combine ~f:(fun a -> (f a).f ~combine ~f:g) [@nontail])
+      }
     ;;
 
     let map = `Custom map

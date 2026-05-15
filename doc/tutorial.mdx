@@ -25,6 +25,12 @@ open Accessor.O
 let print_s = Core.print_s
 ```
 
+Performance
+-----------
+
+`Accessor` is suitable for use in codepaths where performance is not a concern. Use of
+`Accessor` costs allocation at runtime, even when working with immutable data.
+
 Motivation
 ==========
 

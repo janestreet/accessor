@@ -26,7 +26,11 @@ module Prim = struct
   let id = { f = (fun _ mapping -> mapping) }
 
   let compose t1 t2 =
-    { f = (fun dictionary mapping -> t1.f dictionary (t2.f dictionary mapping)) }
+    { f =
+        (fun dictionary mapping ->
+          let mapping = t2.f dictionary mapping [@nontail] in
+          t1.f dictionary mapping [@nontail])
+    }
   ;;
 
   module Equality = struct
@@ -36,7 +40,7 @@ module Prim = struct
     struct
       module M = Mapping.Make4 (T)
 
-      let access { f } = M.injected ~f:(f Dictionary.Create.equality)
+      let access { f } t = M.injected t ~f:(f Dictionary.Create.equality) [@nontail]
     end
 
     module Make_access3 (T : sig
@@ -69,11 +73,13 @@ module Prim = struct
 
       let isomorphism =
         { Dictionary.Create.Isomorphism.f =
-            (fun ~get ~construct -> M.projected ~f:(T.isomorphism ~get ~construct))
+            (fun ~get ~construct hk -> M.projected hk ~f:(T.isomorphism ~get ~construct))
         }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.isomorphism isomorphism))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.isomorphism isomorphism)) [@nontail]
+      ;;
     end
 
     module Make_access3 (T : sig
@@ -119,8 +125,11 @@ module Prim = struct
     struct
       module M = Mapping.Make4 (T)
 
-      let field = { Dictionary.Create.Field.f = (fun f -> M.projected ~f:(T.field f)) }
-      let access { f } = M.injected ~f:(f (Dictionary.Create.field field))
+      let field =
+        { Dictionary.Create.Field.f = (fun f hk -> M.projected hk ~f:(T.field f)) }
+      ;;
+
+      let access { f } t = M.injected t ~f:(f (Dictionary.Create.field field)) [@nontail]
     end
 
     module Make_access3 (T : sig
@@ -161,11 +170,14 @@ module Prim = struct
 
       let variant =
         { Dictionary.Create.Variant.f =
-            (fun ~match_ ~construct -> M.projected ~f:(T.variant ~match_ ~construct))
+            (fun ~match_ ~construct hk ->
+              M.projected hk ~f:(T.variant ~match_ ~construct))
         }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.variant variant))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.variant variant)) [@nontail]
+      ;;
     end
 
     module Make_access3 (T : sig
@@ -210,11 +222,13 @@ module Prim = struct
 
       let constructor =
         { Dictionary.Create.Constructor.f =
-            (fun construct -> M.projected ~f:(T.constructor construct))
+            (fun construct hk -> M.projected hk ~f:(T.constructor construct))
         }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.constructor constructor))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.constructor constructor)) [@nontail]
+      ;;
     end
 
     module Make_access3 (T : sig
@@ -250,10 +264,12 @@ module Prim = struct
       module M = Mapping.Make4 (T)
 
       let getter =
-        { Dictionary.Create.Getter.f = (fun get -> M.projected ~f:(T.getter get)) }
+        { Dictionary.Create.Getter.f = (fun get hk -> M.projected hk ~f:(T.getter get)) }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.getter getter))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.getter getter)) [@nontail]
+      ;;
     end
 
     module Make_access3 (T : sig
@@ -292,10 +308,12 @@ module Prim = struct
       module M = Mapping.Make4 (T)
 
       let optional =
-        { Dictionary.Create.Optional.f = (fun f -> M.projected ~f:(T.optional f)) }
+        { Dictionary.Create.Optional.f = (fun f hk -> M.projected hk ~f:(T.optional f)) }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.optional optional))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.optional optional)) [@nontail]
+      ;;
     end
 
     module Make_access3 (T : sig
@@ -341,12 +359,12 @@ module Prim = struct
 
       let optional_getter =
         { Dictionary.Create.Optional_getter.f =
-            (fun get -> M.projected ~f:(T.optional_getter get))
+            (fun get hk -> M.projected hk ~f:(T.optional_getter get))
         }
       ;;
 
-      let access { f } =
-        M.injected ~f:(f (Dictionary.Create.optional_getter optional_getter))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.optional_getter optional_getter)) [@nontail]
       ;;
     end
 
@@ -389,11 +407,13 @@ module Prim = struct
 
       let nonempty =
         { Dictionary.Create.Nonempty.f =
-            (fun traverse -> M.projected ~f:(T.nonempty traverse))
+            (fun traverse hk -> M.projected hk ~f:(T.nonempty traverse))
         }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.nonempty nonempty))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.nonempty nonempty)) [@nontail]
+      ;;
     end
 
     module Make_access3 (T : sig
@@ -438,12 +458,12 @@ module Prim = struct
 
       let nonempty_getter =
         { Dictionary.Create.Nonempty_getter.f =
-            (fun traverse -> M.projected ~f:(T.nonempty_getter traverse))
+            (fun traverse hk -> M.projected hk ~f:(T.nonempty_getter traverse))
         }
       ;;
 
-      let access { f } =
-        M.injected ~f:(f (Dictionary.Create.nonempty_getter nonempty_getter))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.nonempty_getter nonempty_getter)) [@nontail]
       ;;
     end
 
@@ -488,10 +508,12 @@ module Prim = struct
       module M = Mapping.Make4 (T)
 
       let many =
-        { Dictionary.Create.Many.f = (fun traverse -> M.projected ~f:(T.many traverse)) }
+        { Dictionary.Create.Many.f =
+            (fun traverse hk -> M.projected hk ~f:(T.many traverse))
+        }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.many many))
+      let access { f } t = M.injected t ~f:(f (Dictionary.Create.many many)) [@nontail]
     end
 
     module Make_access3 (T : sig
@@ -533,11 +555,13 @@ module Prim = struct
 
       let many_getter =
         { Dictionary.Create.Many_getter.f =
-            (fun traverse -> M.projected ~f:(T.many_getter traverse))
+            (fun traverse hk -> M.projected hk ~f:(T.many_getter traverse))
         }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.many_getter many_getter))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.many_getter many_getter)) [@nontail]
+      ;;
     end
 
     module Make_access3 (T : sig
@@ -576,10 +600,12 @@ module Prim = struct
       module M = Mapping.Make4 (T)
 
       let mapper =
-        { Dictionary.Create.Mapper.f = (fun map -> M.projected ~f:(T.mapper map)) }
+        { Dictionary.Create.Mapper.f = (fun map hk -> M.projected hk ~f:(T.mapper map)) }
       ;;
 
-      let access { f } = M.injected ~f:(f (Dictionary.Create.mapper mapper))
+      let access { f } t =
+        M.injected t ~f:(f (Dictionary.Create.mapper mapper)) [@nontail]
+      ;;
     end
 
     module Make_access3 (T : sig
@@ -607,16 +633,16 @@ module Prim = struct
 
   module Construct = struct
     module T = struct
-      type (_, 'b) t = 'b
+      type (_, 'b) t = { value : 'b } [@@unboxed]
 
-      let constructor construct t = construct t
+      let constructor construct { value } = { value = construct value }
     end
 
     include T
     include Constructor.Make_access (T)
   end
 
-  let construct = Construct.access
+  let construct t b = (Construct.access t { value = b }).value
 
   module Identical = struct
     module T = struct
@@ -645,7 +671,7 @@ module Prim = struct
         end)
     end
     in
-    T.access t (fun (i, a) -> f i a) ([], at)
+    (T.access t (fun (i, a) -> f i a)) ([], at) [@nontail]
   ;;
 
   let map_reducei (type r) t at ~empty ~combine ~f =
@@ -659,16 +685,24 @@ module Prim = struct
         end)
     end
     in
-    T.access t (fun (i, a) -> f i a) ([], at)
+    (T.access t (fun (i, a) -> f i a)) ([], at) [@nontail]
   ;;
 
-  module Map = Mapper.Make_access (struct
-      type ('a, 'b) t = 'a -> 'b
+  module Map = struct
+    module T = struct
+      type ('a, 'b) t = { f : 'a -> 'b } [@@unboxed]
 
-      let mapper map t at = map at ~f:t
-    end)
+      let mapper map { f } = { f = (fun at -> map at ~f) }
+    end
 
-  let mapi t at ~f = Map.access t (fun (i, a) -> f i a) ([], at)
+    include T
+    include Mapper.Make_access (T)
+  end
+
+  let mapi t at ~f =
+    let result = Map.access t { f = (fun (i, a) -> f i a) } in
+    result.f ([], at)
+  ;;
 
   let map_reduce_nonempty t at ~combine ~f =
     map_reduce_nonemptyi t at ~combine ~f:(fun [] a -> f a)
@@ -686,90 +720,98 @@ module Prim = struct
   let constructor construct =
     { f =
         (fun dictionary ->
-          Mapping.with_hk (Dictionary.Run.constructor dictionary construct))
+          Mapping.with_hk (Dictionary.Run.constructor dictionary construct) [@nontail])
     }
   ;;
 
   let field' f =
     { f =
         (fun dictionary ->
-          Dictionary.Run.field dictionary (fun (it, at) ->
-            let a, construct = f at in
-            (it, a), construct)
-          |> Mapping.with_hk)
+          (Dictionary.Run.field dictionary (fun (it, at) ->
+             let a, construct = f at in
+             (it, a), construct)
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let fieldi' f =
     { f =
         (fun dictionary ->
-          Dictionary.Run.field dictionary (fun (it, at) ->
-            let i, a, construct = f at in
-            (Index.(i :: it), a), construct)
-          |> Mapping.with_hk)
+          (Dictionary.Run.field dictionary (fun (it, at) ->
+             let i, a, construct = f at in
+             (Index.(i :: it), a), construct)
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let getter get =
     { f =
         (fun dictionary ->
-          Mapping.with_hk (Dictionary.Run.getter dictionary (fun (it, at) -> it, get at)))
+          Mapping.with_hk
+            (Dictionary.Run.getter dictionary (fun (it, at) -> it, get at)) [@nontail])
     }
   ;;
 
   let getteri get =
     { f =
         (fun dictionary ->
-          Dictionary.Run.getter dictionary (fun (it, at) ->
-            let i, a = get at in
-            Index.(i :: it), a)
-          |> Mapping.with_hk)
+          (Dictionary.Run.getter dictionary (fun (it, at) ->
+             let i, a = get at in
+             Index.(i :: it), a)
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let isomorphism ~get ~construct =
     { f =
         (fun dictionary ->
-          Dictionary.Run.isomorphism
-            dictionary
-            ~get:(fun (it, at) -> it, get at)
-            ~construct
-          |> Mapping.with_hk)
+          (Dictionary.Run.isomorphism
+             dictionary
+             ~get:(fun (it, at) -> it, get at)
+             ~construct
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let isomorphismi ~get ~construct =
     { f =
         (fun dictionary ->
-          Dictionary.Run.isomorphism
-            dictionary
-            ~get:(fun (it, at) ->
-              let i, a = get at in
-              Index.(i :: it), a)
-            ~construct
-          |> Mapping.with_hk)
+          (Dictionary.Run.isomorphism
+             dictionary
+             ~get:(fun (it, at) ->
+               let i, a = get at in
+               Index.(i :: it), a)
+             ~construct
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let optional' f =
     { f =
         (fun dictionary ->
-          Dictionary.Run.optional dictionary (fun (it, at) ->
-            match f at with
-            | Either.First (a, construct) -> First ((it, a), construct)
-            | Second _ as bt -> bt)
-          |> Mapping.with_hk)
+          (Dictionary.Run.optional dictionary (fun (it, at) ->
+             match f at with
+             | Either.First (a, construct) -> First ((it, a), construct)
+             | Second _ as bt -> bt)
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let optionali' f =
     { f =
         (fun dictionary ->
-          Dictionary.Run.optional dictionary (fun (it, at) ->
-            match f at with
-            | Either.First (i, a, construct) -> First ((Index.(i :: it), a), construct)
-            | Second _ as bt -> bt)
-          |> Mapping.with_hk)
+          (Dictionary.Run.optional dictionary (fun (it, at) ->
+             match f at with
+             | Either.First (i, a, construct) -> First ((Index.(i :: it), a), construct)
+             | Second _ as bt -> bt)
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
@@ -780,179 +822,197 @@ module Prim = struct
   let map_index f =
     { f =
         (fun dictionary ->
-          Dictionary.Run.isomorphism
-            dictionary
-            ~get:(fun (i, a) -> f i, a)
-            ~construct:Fn.id
-          |> Mapping.with_hk)
+          (Dictionary.Run.isomorphism
+             dictionary
+             ~get:(fun (i, a) -> f i, a)
+             ~construct:Fn.id
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let add_to_index =
     { f =
         (fun dictionary ->
-          Dictionary.Run.isomorphism
-            dictionary
-            ~get:(fun (i, a) -> Index.(a :: i), a)
-            ~construct:Fn.id
-          |> Mapping.with_hk)
+          (Dictionary.Run.isomorphism
+             dictionary
+             ~get:(fun (i, a) -> Index.(a :: i), a)
+             ~construct:Fn.id
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let filter_index f =
     { f =
         (fun dictionary ->
-          Dictionary.Run.optional dictionary (fun ((i, a) as ia) ->
-            if f i then First (ia, Fn.id) else Second a)
-          |> Mapping.with_hk)
+          (Dictionary.Run.optional dictionary (fun ((i, a) as ia) ->
+             if f i then First (ia, Fn.id) else Second a)
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let filter_map_index f =
     { f =
         (fun dictionary ->
-          Dictionary.Run.optional dictionary (fun (i, a) ->
-            match f i with
-            | None -> Second a
-            | Some i -> First ((i, a), Fn.id))
-          |> Mapping.with_hk)
+          (Dictionary.Run.optional dictionary (fun (i, a) ->
+             match f i with
+             | None -> Second a
+             | Some i -> First ((i, a), Fn.id))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let optional_getter get_option =
     { f =
         (fun dictionary ->
-          Dictionary.Run.optional_getter dictionary (fun (it, at) ->
-            Option.map (get_option at) ~f:(fun a -> it, a))
-          |> Mapping.with_hk)
+          (Dictionary.Run.optional_getter dictionary (fun (it, at) ->
+             Option.map (get_option at) ~f:(fun a -> it, a))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let optional_getteri get_option =
     { f =
         (fun dictionary ->
-          Dictionary.Run.optional_getter dictionary (fun (it, at) ->
-            Option.map (get_option at) ~f:(fun (i, a) -> Index.(i :: it), a))
-          |> Mapping.with_hk)
+          (Dictionary.Run.optional_getter dictionary (fun (it, at) ->
+             Option.map (get_option at) ~f:(fun (i, a) -> Index.(i :: it), a))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let nonempty traverse =
     { f =
         (fun dictionary ->
-          Dictionary.Run.nonempty dictionary (fun (it, at) ->
-            Nonempty.Accessed.bind (traverse at) ~f:(fun a -> Nonempty.access (it, a)))
-          |> Mapping.with_hk)
+          (Dictionary.Run.nonempty dictionary (fun (it, at) ->
+             Nonempty.Accessed.bind (traverse at) ~f:(fun a -> Nonempty.access (it, a)))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let nonemptyi traverse =
     { f =
         (fun dictionary ->
-          Dictionary.Run.nonempty dictionary (fun (it, at) ->
-            Nonempty.Accessed.bind (traverse at) ~f:(fun (i, a) ->
-              Nonempty.access (Index.(i :: it), a)))
-          |> Mapping.with_hk)
+          (Dictionary.Run.nonempty dictionary (fun (it, at) ->
+             Nonempty.Accessed.bind (traverse at) ~f:(fun (i, a) ->
+               Nonempty.access (Index.(i :: it), a)))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let nonempty_getter traverse =
     { f =
         (fun dictionary ->
-          Dictionary.Run.nonempty_getter dictionary (fun (it, at) ->
-            Nonempty_getter.map (traverse at) ~f:(fun a -> it, a))
-          |> Mapping.with_hk)
+          (Dictionary.Run.nonempty_getter dictionary (fun (it, at) ->
+             Nonempty_getter.map (traverse at) ~f:(fun a -> it, a))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let nonempty_getteri traverse =
     { f =
         (fun dictionary ->
-          Dictionary.Run.nonempty_getter dictionary (fun (it, at) ->
-            Nonempty_getter.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
-          |> Mapping.with_hk)
+          (Dictionary.Run.nonempty_getter dictionary (fun (it, at) ->
+             Nonempty_getter.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let many traverse =
     { f =
         (fun dictionary ->
-          Dictionary.Run.many dictionary (fun (it, at) ->
-            Many.Accessed.map (traverse at) ~f:(fun a -> it, a))
-          |> Mapping.with_hk)
+          (Dictionary.Run.many dictionary (fun (it, at) ->
+             Many.Accessed.map (traverse at) ~f:(fun a -> it, a))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let manyi traverse =
     { f =
         (fun dictionary ->
-          Dictionary.Run.many dictionary (fun (it, at) ->
-            Many.Accessed.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
-          |> Mapping.with_hk)
+          (Dictionary.Run.many dictionary (fun (it, at) ->
+             Many.Accessed.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let many_getter traverse =
     { f =
         (fun dictionary ->
-          Dictionary.Run.many_getter dictionary (fun (it, at) ->
-            Many_getter.map (traverse at) ~f:(fun a -> it, a))
-          |> Mapping.with_hk)
+          (Dictionary.Run.many_getter dictionary (fun (it, at) ->
+             Many_getter.map (traverse at) ~f:(fun a -> it, a))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let many_getteri traverse =
     { f =
         (fun dictionary ->
-          Dictionary.Run.many_getter dictionary (fun (it, at) ->
-            Many_getter.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
-          |> Mapping.with_hk)
+          (Dictionary.Run.many_getter dictionary (fun (it, at) ->
+             Many_getter.map (traverse at) ~f:(fun (i, a) -> Index.(i :: it), a))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let mapper map =
     { f =
         (fun dictionary ->
-          Dictionary.Run.mapper dictionary (fun (it, at) ~f ->
-            map at ~f:(fun a -> f (it, a)))
-          |> Mapping.with_hk)
+          (Dictionary.Run.mapper dictionary (fun (it, at) ~f ->
+             map at ~f:(fun a -> f (it, a)))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let mapperi map =
     { f =
         (fun dictionary ->
-          Dictionary.Run.mapper dictionary (fun (it, at) ~f ->
-            map at ~f:(fun i a -> f (Index.(i :: it), a)))
-          |> Mapping.with_hk)
+          (Dictionary.Run.mapper dictionary (fun (it, at) ~f ->
+             map at ~f:(fun i a -> f (Index.(i :: it), a)))
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let variant ~match_ ~construct =
     { f =
         (fun dictionary ->
-          Dictionary.Run.variant
-            dictionary
-            ~match_:(fun (it, at) ->
-              match match_ at with
-              | Either.First a -> First (it, a)
-              | Second _ as bt -> bt)
-            ~construct
-          |> Mapping.with_hk)
+          (Dictionary.Run.variant
+             dictionary
+             ~match_:(fun (it, at) ->
+               match match_ at with
+               | Either.First a -> First (it, a)
+               | Second _ as bt -> bt)
+             ~construct
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 
   let varianti ~match_ ~construct =
     { f =
         (fun dictionary ->
-          Dictionary.Run.variant
-            dictionary
-            ~match_:(fun (it, at) ->
-              match match_ at with
-              | Either.First (i, a) -> First (Index.(i :: it), a)
-              | Second _ as bt -> bt)
-            ~construct
-          |> Mapping.with_hk)
+          (Dictionary.Run.variant
+             dictionary
+             ~match_:(fun (it, at) ->
+               match match_ at with
+               | Either.First (i, a) -> First (Index.(i :: it), a)
+               | Second _ as bt -> bt)
+             ~construct
+           |> Mapping.with_hk)
+          [@nontail])
     }
   ;;
 end
@@ -1044,7 +1104,7 @@ module Of_applicative3 (A : sig
       let many traverse f at = of_many (traverse at) ~access:f
     end)
 
-  let mapi t at ~f = Kleisli.access t (fun (i, a) -> f i a) ([], at)
+  let mapi t at ~f = (Kleisli.access t (fun (i, a) -> f i a)) ([], at) [@nontail]
   let map t at ~f = mapi t at ~f:(fun [] a -> f a)
 
   let map_reduce t at ~empty ~combine ~f =
@@ -1372,7 +1432,7 @@ module Of_functor3 (F : sig
       ;;
     end)
 
-  let mapi t at ~f = access t (fun (i, a) -> f i a) ([], at)
+  let mapi t at ~f = (access t (fun (i, a) -> f i a)) ([], at) [@nontail]
   let map t at ~f = mapi t at ~f:(fun [] a -> f a)
   let all t at = map t at ~f:Fn.id
 end
@@ -1412,7 +1472,7 @@ struct
       let nonempty traverse f at = of_nonempty (traverse at) ~access:f
     end)
 
-  let mapi t at ~f = Kleisli.access t (fun (i, a) -> f i a) ([], at)
+  let mapi t at ~f = (Kleisli.access t (fun (i, a) -> f i a)) ([], at) [@nontail]
   let map t at ~f = mapi t at ~f:(fun [] a -> f a)
 
   let map_reduce_nonempty t at ~combine ~f =
@@ -1911,7 +1971,7 @@ module Concrete_getter = Getter.Make_access3 (struct
     let getter get t at = t (get at)
   end)
 
-let geti t at = Concrete_getter.access t Fn.id ([], at)
+let geti t at = (Concrete_getter.access t Fn.id) ([], at) [@nontail]
 
 let get t at =
   let [], a = geti t at in
@@ -1924,7 +1984,7 @@ module Concrete_optional_getter = Optional_getter.Make_access3 (struct
     let optional_getter get t at = Option.bind (get at) ~f:t
   end)
 
-let get_optioni t at = Concrete_optional_getter.access t Option.some ([], at)
+let get_optioni t at = (Concrete_optional_getter.access t Option.some) ([], at) [@nontail]
 let get_option t at = Option.map (get_optioni t at) ~f:(fun ([], a) -> a)
 
 module Match_ = Optional.Make_access3 (struct
@@ -1940,7 +2000,7 @@ module Match_ = Optional.Make_access3 (struct
     ;;
   end)
 
-let matchi t at = Match_.access t Either.first ([], at)
+let matchi t at = (Match_.access t Either.first) ([], at) [@nontail]
 let match_ t at = Either.First.map (matchi t at) ~f:(fun ([], a) -> a)
 
 module Concrete_isomorphism = struct
