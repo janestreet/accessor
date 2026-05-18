@@ -11,7 +11,8 @@ end
 
 module T = struct
   type ('bt, 'a, 'b) t =
-    { f : 'w. 'w Applicative.t -> access:('a -> ('b, 'w) Hk.t1) -> ('bt, 'w) Hk.t1 }
+    { f : 'w. 'w Applicative.t -> access:('a -> ('b, 'w) Hk.t1) @ local -> ('bt, 'w) Hk.t1
+    }
   [@@unboxed]
 
   let access a = { f = (fun _ ~access -> access a) }
@@ -22,7 +23,10 @@ module T = struct
       let return a = { f = (fun applicative ~access:_ -> applicative.return a) }
 
       let map t ~f =
-        { f = (fun applicative ~access -> applicative.map (t.f applicative ~access) ~f) }
+        { f =
+            (fun applicative ~access ->
+              applicative.map (t.f applicative ~access) ~f [@nontail])
+        }
       ;;
 
       let map = `Custom map
@@ -30,7 +34,9 @@ module T = struct
       let apply t1 t2 =
         { f =
             (fun applicative ~access ->
-              applicative.apply (t1.f applicative ~access) (t2.f applicative ~access))
+              applicative.apply
+                (t1.f applicative ~access)
+                (t2.f applicative ~access) [@nontail])
         }
       ;;
     end)
@@ -56,13 +62,16 @@ module Accessed = Monad.Make_indexed (struct
     let return = access
 
     let map t ~f =
-      { f = (fun applicative ~access -> t.f applicative ~access:(fun a -> access (f a))) }
+      { f =
+          (fun applicative ~access ->
+            t.f applicative ~access:(fun a -> access (f a)) [@nontail])
+      }
     ;;
 
     let bind t ~f =
       { f =
           (fun applicative ~access ->
-            t.f applicative ~access:(fun a -> (f a).f applicative ~access))
+            t.f applicative ~access:(fun a -> (f a).f applicative ~access) [@nontail])
       }
     ;;
 

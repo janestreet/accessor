@@ -23,7 +23,7 @@ module Of_applicative (A : sig
     val map : 'a t -> f:('a -> 'b) -> 'b t
     val apply : ('a -> 'b) t -> 'a t -> 'b t
   end) : sig
-  val of_many : ('bt, 'a, 'b) t -> access:('a -> 'b A.t) -> 'bt A.t
+  val of_many : ('bt, 'a, 'b) t -> access:('a -> 'b A.t) @ local -> 'bt A.t
 end
 
 module Of_applicative2 (A : sig
@@ -33,7 +33,7 @@ module Of_applicative2 (A : sig
     val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
     val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
   end) : sig
-  val of_many : ('bt, 'a, 'b) t -> access:('a -> ('b, 'e) A.t) -> ('bt, 'e) A.t
+  val of_many : ('bt, 'a, 'b) t -> access:('a -> ('b, 'e) A.t) @ local -> ('bt, 'e) A.t
 end
 
 module Of_applicative3 (A : sig
@@ -43,7 +43,10 @@ module Of_applicative3 (A : sig
     val map : ('a, 'd, 'e) t -> f:('a -> 'b) -> ('b, 'd, 'e) t
     val apply : ('a -> 'b, 'd, 'e) t -> ('a, 'd, 'e) t -> ('b, 'd, 'e) t
   end) : sig
-  val of_many : ('bt, 'a, 'b) t -> access:('a -> ('b, 'd, 'e) A.t) -> ('bt, 'd, 'e) A.t
+  val of_many
+    :  ('bt, 'a, 'b) t
+    -> access:('a -> ('b, 'd, 'e) A.t) @ local
+    -> ('bt, 'd, 'e) A.t
 end
 
 module Open_on_rhs_intf : sig

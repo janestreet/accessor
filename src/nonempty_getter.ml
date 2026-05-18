@@ -1,7 +1,7 @@
 open! Base
 open! Import
 
-type 'a t = { f : 'r. combine:('r -> 'r -> 'r) -> f:('a -> 'r) -> 'r } [@@unboxed]
+type 'a t = { f : 'r. combine:('r -> 'r -> 'r) -> f:('a -> 'r) @ local -> 'r } [@@unboxed]
 
 let access a = { f = (fun ~combine:_ ~f -> f a) }
 
@@ -9,10 +9,16 @@ include Monad.Make (struct
     type nonrec 'a t = 'a t
 
     let return = access
-    let map t ~f = { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> g (f a))) }
+
+    let map t ~f =
+      { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> g (f a)) [@nontail]) }
+    ;;
 
     let bind t ~f =
-      { f = (fun ~combine ~f:g -> t.f ~combine ~f:(fun a -> (f a).f ~combine ~f:g)) }
+      { f =
+          (fun ~combine ~f:g ->
+            t.f ~combine ~f:(fun a -> (f a).f ~combine ~f:g) [@nontail])
+      }
     ;;
 
     let map = `Custom map

@@ -24,7 +24,11 @@ module General : sig
 
       The representation is exposed, but not intended to be used directly. *)
   type ('inner, 'outer, 'kind) t =
-    { f : 'w. ('kind, 'w) Dictionary.t -> ('inner, 'w) Mapping.t -> ('outer, 'w) Mapping.t
+    { f :
+        'w.
+        ('kind, 'w) Dictionary.t @ local
+        -> ('inner, 'w) Mapping.t @ local
+        -> ('outer, 'w) Mapping.t @ local
     }
   [@@unboxed]
 end

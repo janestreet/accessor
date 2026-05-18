@@ -22,8 +22,9 @@ module Create = struct
           'a 'b 'at 'bt.
           get:('at -> 'a)
           -> construct:('b -> 'bt)
-          -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -32,7 +33,10 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> 'a * ('b -> 'bt)) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -41,23 +45,36 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          match_:('at -> ('a, 'bt) Either.t)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          match_:('at -> ('a, 'bt) Either.t) @ local
+          -> construct:('b -> 'bt) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
 
   module Constructor = struct
     type 'w t =
-      { f : 'a 'b 'at 'bt. ('b -> 'bt) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2 }
+      { f :
+          'a 'b 'at 'bt.
+          ('b -> 'bt) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
+      }
     [@@unboxed]
   end
 
   module Getter = struct
     type 'w t =
-      { f : 'a 'b 'at 'bt. ('at -> 'a) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2 }
+      { f :
+          'a 'b 'at 'bt.
+          ('at -> 'a) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
+      }
     [@@unboxed]
   end
 
@@ -65,9 +82,10 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-          -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -75,7 +93,11 @@ module Create = struct
   module Optional_getter = struct
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> 'a option) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+          ('at -> 'a option) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -84,7 +106,10 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('bt, 'a, 'b) Nonempty.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> ('bt, 'a, 'b) Nonempty.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -93,7 +118,10 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a Nonempty_getter.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> 'a Nonempty_getter.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -102,7 +130,10 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> ('bt, 'a, 'b) Many.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -111,7 +142,10 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a Many_getter.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> 'a Many_getter.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -120,7 +154,10 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> f:('a -> 'b) -> 'bt)
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -143,18 +180,18 @@ module Create = struct
     | Mapper : 'w Mapper.t -> ([> mapper ], 'w) t
 
   let equality = Equality
-  let isomorphism isomorphism = Isomorphism isomorphism
-  let field field = Field field
-  let variant variant = Variant variant
-  let constructor constructor = Constructor constructor
-  let getter getter = Getter getter
-  let optional optional = Optional optional
-  let optional_getter optional_getter = Optional_getter optional_getter
-  let nonempty nonempty = Nonempty nonempty
-  let nonempty_getter nonempty_getter = Nonempty_getter nonempty_getter
-  let many many = Many many
-  let many_getter many_getter = Many_getter many_getter
-  let mapper mapper = Mapper mapper
+  let isomorphism isomorphism = exclave_ Isomorphism isomorphism
+  let field field = exclave_ Field field
+  let variant variant = exclave_ Variant variant
+  let constructor constructor = exclave_ Constructor constructor
+  let getter getter = exclave_ Getter getter
+  let optional optional = exclave_ Optional optional
+  let optional_getter optional_getter = exclave_ Optional_getter optional_getter
+  let nonempty nonempty = exclave_ Nonempty nonempty
+  let nonempty_getter nonempty_getter = exclave_ Nonempty_getter nonempty_getter
+  let many many = exclave_ Many many
+  let many_getter many_getter = exclave_ Many_getter many_getter
+  let mapper mapper = exclave_ Mapper mapper
 end
 
 type nonrec ('c, 'w) t = ('c, 'w) Create.t
@@ -191,7 +228,7 @@ module Run = struct
 
   type 'w field_hack = Field_hack : ([< field ], 'w) t -> 'w field_hack [@@unboxed]
 
-  let field t field_f =
+  let field t field_f = exclave_
     let (Field_hack t) = Field_hack t in
     match t with
     | Field { f } -> f field_f
@@ -220,7 +257,7 @@ module Run = struct
 
   type 'w getter_hack = Getter_hack : ([< getter ], 'w) t -> 'w getter_hack [@@unboxed]
 
-  let getter t get =
+  let getter t get = exclave_
     let (Getter_hack t) = Getter_hack t in
     match t with
     | Getter { f } -> f get
@@ -233,7 +270,7 @@ module Run = struct
     | Isomorphism_hack : ([< isomorphism ], 'w) t -> 'w isomorphism_hack
   [@@unboxed]
 
-  let isomorphism t ~get ~construct =
+  let isomorphism t ~get ~construct = exclave_
     let (Isomorphism_hack t) = Isomorphism_hack t in
     match t with
     | Isomorphism { f } -> f ~get ~construct
@@ -267,7 +304,7 @@ module Run = struct
 
   type 'w many_hack = Many_hack : ([< many ], 'w) t -> 'w many_hack [@@unboxed]
 
-  let many t traverse =
+  let many t traverse = exclave_
     let (Many_hack t) = Many_hack t in
     match t with
     | Many { f } -> f traverse
@@ -287,7 +324,7 @@ module Run = struct
   type 'w nonempty_hack = Nonempty_hack : ([< nonempty ], 'w) t -> 'w nonempty_hack
   [@@unboxed]
 
-  let nonempty t traverse =
+  let nonempty t traverse = exclave_
     let (Nonempty_hack t) = Nonempty_hack t in
     match t with
     | Nonempty { f } -> f traverse
@@ -301,7 +338,7 @@ module Run = struct
     | Nonempty_getter_hack : ([< nonempty_getter ], 'w) t -> 'w nonempty_getter_hack
   [@@unboxed]
 
-  let nonempty_getter t traverse =
+  let nonempty_getter t traverse = exclave_
     let (Nonempty_getter_hack t) = Nonempty_getter_hack t in
     match t with
     | Nonempty_getter { f } -> f traverse
@@ -311,7 +348,7 @@ module Run = struct
   type 'w optional_hack = Optional_hack : ([< optional ], 'w) t -> 'w optional_hack
   [@@unboxed]
 
-  let optional t optional_f =
+  let optional t optional_f = exclave_
     let (Optional_hack t) = Optional_hack t in
     match t with
     | Optional { f } -> f optional_f
@@ -342,7 +379,7 @@ module Run = struct
     | Optional_getter_hack : ([< optional_getter ], 'w) t -> 'w optional_getter_hack
   [@@unboxed]
 
-  let optional_getter t get_option =
+  let optional_getter t get_option = exclave_
     let (Optional_getter_hack t) = Optional_getter_hack t in
     match t with
     | Optional_getter { f } -> f get_option
@@ -356,7 +393,7 @@ module Run = struct
   type 'w variant_hack = Variant_hack : ([< variant ], 'w) t -> 'w variant_hack
   [@@unboxed]
 
-  let variant t ~match_ ~construct =
+  let variant t ~match_ ~construct = exclave_
     let (Variant_hack t) = Variant_hack t in
     match t with
     | Variant { f } -> f ~match_ ~construct

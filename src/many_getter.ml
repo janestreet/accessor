@@ -1,7 +1,7 @@
 open! Base
 open! Import
 
-type 'a t = { f : 'r. empty:'r -> combine:('r -> 'r -> 'r) -> f:('a -> 'r) -> 'r }
+type 'a t = { f : 'r. empty:'r -> combine:('r -> 'r -> 'r) -> f:('a -> 'r) @ local -> 'r }
 [@@unboxed]
 
 let access a = { f = (fun ~empty:_ ~combine:_ ~f -> f a) }
@@ -21,13 +21,16 @@ include Monad.Make (struct
     let return = access
 
     let map t ~f =
-      { f = (fun ~empty ~combine ~f:g -> t.f ~empty ~combine ~f:(fun a -> g (f a))) }
+      { f =
+          (fun ~empty ~combine ~f:g ->
+            t.f ~empty ~combine ~f:(fun a -> g (f a)) [@nontail])
+      }
     ;;
 
     let bind t ~f =
       { f =
           (fun ~empty ~combine ~f:g ->
-            t.f ~empty ~combine ~f:(fun a -> (f a).f ~empty ~combine ~f:g))
+            t.f ~empty ~combine ~f:(fun a -> (f a).f ~empty ~combine ~f:g) [@nontail])
       }
     ;;
 

@@ -34,7 +34,7 @@ module Of_applicative_without_return (A : sig
     val map : 'a t -> f:('a -> 'b) -> 'b t
     val apply : ('a -> 'b) t -> 'a t -> 'b t
   end) : sig
-  val of_nonempty : ('bt, 'a, 'b) t -> access:('a -> 'b A.t) -> 'bt A.t
+  val of_nonempty : ('bt, 'a, 'b) t -> access:('a -> 'b A.t) @ local -> 'bt A.t
 end
 
 module Of_applicative_without_return2 (A : sig
@@ -43,7 +43,10 @@ module Of_applicative_without_return2 (A : sig
     val map : ('a, 'e) t -> f:('a -> 'b) -> ('b, 'e) t
     val apply : ('a -> 'b, 'e) t -> ('a, 'e) t -> ('b, 'e) t
   end) : sig
-  val of_nonempty : ('bt, 'a, 'b) t -> access:('a -> ('b, 'e) A.t) -> ('bt, 'e) A.t
+  val of_nonempty
+    :  ('bt, 'a, 'b) t
+    -> access:('a -> ('b, 'e) A.t) @ local
+    -> ('bt, 'e) A.t
 end
 
 module Of_applicative_without_return3 (A : sig
@@ -54,6 +57,6 @@ module Of_applicative_without_return3 (A : sig
   end) : sig
   val of_nonempty
     :  ('bt, 'a, 'b) t
-    -> access:('a -> ('b, 'e, 'f) A.t)
+    -> access:('a -> ('b, 'e, 'f) A.t) @ local
     -> ('bt, 'e, 'f) A.t
 end

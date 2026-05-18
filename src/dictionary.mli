@@ -14,8 +14,9 @@ module Create : sig
           'a 'b 'at 'bt.
           get:('at -> 'a)
           -> construct:('b -> 'bt)
-          -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -24,7 +25,10 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> 'a * ('b -> 'bt)) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -33,23 +37,36 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          match_:('at -> ('a, 'bt) Either.t)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          match_:('at -> ('a, 'bt) Either.t) @ local
+          -> construct:('b -> 'bt) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
 
   module Constructor : sig
     type 'w t =
-      { f : 'a 'b 'at 'bt. ('b -> 'bt) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2 }
+      { f :
+          'a 'b 'at 'bt.
+          ('b -> 'bt) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
+      }
     [@@unboxed]
   end
 
   module Getter : sig
     type 'w t =
-      { f : 'a 'b 'at 'bt. ('at -> 'a) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2 }
+      { f :
+          'a 'b 'at 'bt.
+          ('at -> 'a) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
+      }
     [@@unboxed]
   end
 
@@ -57,9 +74,10 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-          -> ('a, 'b, 'w) Hk.t2
-          -> ('at, 'bt, 'w) Hk.t2
+          ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -67,7 +85,11 @@ module Create : sig
   module Optional_getter : sig
     type 'w t =
       { f :
-          'a 'b 'at 'bt. ('at -> 'a option) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          'a 'b 'at 'bt.
+          ('at -> 'a option) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -76,7 +98,10 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('bt, 'a, 'b) Nonempty.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> ('bt, 'a, 'b) Nonempty.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -85,7 +110,10 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a Nonempty_getter.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> 'a Nonempty_getter.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -94,7 +122,10 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> ('bt, 'a, 'b) Many.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -103,7 +134,10 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a Many_getter.t) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> 'a Many_getter.t) @ local
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
@@ -112,100 +146,106 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          ('at -> f:('a -> 'b) -> 'bt)
+          -> ('a, 'b, 'w) Hk.t2 @ local
+          -> ('at, 'bt, 'w) Hk.t2 @ local
+        @@ global
       }
     [@@unboxed]
   end
 
   val equality : ([> equality ], _) t
-  val isomorphism : 'w Isomorphism.t -> ([> isomorphism ], 'w) t
-  val field : 'w Field.t -> ([> field ], 'w) t
-  val variant : 'w Variant.t -> ([> variant ], 'w) t
-  val constructor : 'w Constructor.t -> ([> constructor ], 'w) t
-  val getter : 'w Getter.t -> ([> getter ], 'w) t
-  val optional : 'w Optional.t -> ([> optional ], 'w) t
-  val optional_getter : 'w Optional_getter.t -> ([> optional_getter ], 'w) t
-  val nonempty : 'w Nonempty.t -> ([> nonempty ], 'w) t
-  val nonempty_getter : 'w Nonempty_getter.t -> ([> nonempty_getter ], 'w) t
-  val many : 'w Many.t -> ([> many ], 'w) t
-  val many_getter : 'w Many_getter.t -> ([> many_getter ], 'w) t
-  val mapper : 'w Mapper.t -> ([> mapper ], 'w) t
+  val isomorphism : 'w Isomorphism.t -> ([> isomorphism ], 'w) t @ local
+  val field : 'w Field.t -> ([> field ], 'w) t @ local
+  val variant : 'w Variant.t -> ([> variant ], 'w) t @ local
+  val constructor : 'w Constructor.t -> ([> constructor ], 'w) t @ local
+  val getter : 'w Getter.t -> ([> getter ], 'w) t @ local
+  val optional : 'w Optional.t -> ([> optional ], 'w) t @ local
+  val optional_getter : 'w Optional_getter.t -> ([> optional_getter ], 'w) t @ local
+  val nonempty : 'w Nonempty.t -> ([> nonempty ], 'w) t @ local
+  val nonempty_getter : 'w Nonempty_getter.t -> ([> nonempty_getter ], 'w) t @ local
+  val many : 'w Many.t -> ([> many ], 'w) t @ local
+  val many_getter : 'w Many_getter.t -> ([> many_getter ], 'w) t @ local
+  val mapper : 'w Mapper.t -> ([> mapper ], 'w) t @ local
 end
 
 module Run : sig
-  val equality : (_, 'w) t -> ('a, 'b, 'w) Hk.t2 -> ('a, 'b, 'w) Hk.t2
+  val equality
+    :  (_, 'w) t @ local
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('a, 'b, 'w) Hk.t2 @ local
 
   val constructor
-    :  ([< constructor ], 'w) t
+    :  ([< constructor ], 'w) t @ local
     -> ('b -> 'bt)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val field
-    :  ([< field ], 'w) t
+    :  ([< field ], 'w) t @ local
     -> ('at -> 'a * ('b -> 'bt))
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val getter
-    :  ([< getter ], 'w) t
+    :  ([< getter ], 'w) t @ local
     -> ('at -> 'a)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val isomorphism
-    :  ([< isomorphism ], 'w) t
+    :  ([< isomorphism ], 'w) t @ local
     -> get:('at -> 'a)
     -> construct:('b -> 'bt)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val mapper
-    :  ([< mapper ], 'w) t
+    :  ([< mapper ], 'w) t @ local
     -> ('at -> f:('a -> 'b) -> 'bt)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val many
-    :  ([< many ], 'w) t
+    :  ([< many ], 'w) t @ local
     -> ('at -> ('bt, 'a, 'b) Many.t)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val many_getter
-    :  ([< many_getter ], 'w) t
+    :  ([< many_getter ], 'w) t @ local
     -> ('at -> 'a Many_getter.t)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val nonempty
-    :  ([< nonempty ], 'w) t
+    :  ([< nonempty ], 'w) t @ local
     -> ('at -> ('bt, 'a, 'b) Nonempty.t)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val nonempty_getter
-    :  ([< nonempty_getter ], 'w) t
+    :  ([< nonempty_getter ], 'w) t @ local
     -> ('at -> 'a Nonempty_getter.t)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val optional
-    :  ([< optional ], 'w) t
+    :  ([< optional ], 'w) t @ local
     -> ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val optional_getter
-    :  ([< optional_getter ], 'w) t
+    :  ([< optional_getter ], 'w) t @ local
     -> ('at -> 'a option)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val variant
-    :  ([< variant ], 'w) t
+    :  ([< variant ], 'w) t @ local
     -> match_:('at -> ('a, 'bt) Either.t)
     -> construct:('b -> 'bt)
-    -> ('a, 'b, 'w) Hk.t2
-    -> ('at, 'bt, 'w) Hk.t2
+    -> ('a, 'b, 'w) Hk.t2 @ local
+    -> ('at, 'bt, 'w) Hk.t2 @ local
 end

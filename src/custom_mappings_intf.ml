@@ -13,8 +13,8 @@ module type S = sig
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> equality ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
@@ -22,8 +22,8 @@ module type S = sig
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> equality ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
@@ -31,8 +31,8 @@ module type S = sig
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> equality ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -55,13 +55,13 @@ module type S = sig
         val isomorphism
           :  get:('at -> 'a)
           -> construct:('b -> 'bt)
-          -> ('a, 'b) t
-          -> ('at, 'bt) t
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> isomorphism ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
@@ -70,13 +70,13 @@ module type S = sig
         val isomorphism
           :  get:('at -> 'a)
           -> construct:('b -> 'bt)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> isomorphism ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
@@ -85,13 +85,13 @@ module type S = sig
         val isomorphism
           :  get:('at -> 'a)
           -> construct:('b -> 'bt)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> isomorphism ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -112,37 +112,43 @@ module type S = sig
                 let a, k = g a in
                 a, Fn.compose j k)
             ]} *)
-        val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b) t -> ('at, 'bt) t
+        val field
+          :  ('at -> 'a * ('b -> 'bt)) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> field ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
-        val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+        val field
+          :  ('at -> 'a * ('b -> 'bt)) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> field ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
         val field
-          :  ('at -> 'a * ('b -> 'bt))
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          :  ('at -> 'a * ('b -> 'bt)) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> field ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -171,45 +177,45 @@ module type S = sig
                   ~construct:(Fn.compose c1 c2)
             ]} *)
         val variant
-          :  match_:('at -> ('a, 'bt) Either.t)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b) t
-          -> ('at, 'bt) t
+          :  match_:('at -> ('a, 'bt) Either.t) @ local
+          -> construct:('b -> 'bt) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> variant ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
         val variant
-          :  match_:('at -> ('a, 'bt) Either.t)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
+          :  match_:('at -> ('a, 'bt) Either.t) @ local
+          -> construct:('b -> 'bt) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> variant ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
         val variant
-          :  match_:('at -> ('a, 'bt) Either.t)
-          -> construct:('b -> 'bt)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          :  match_:('at -> ('a, 'bt) Either.t) @ local
+          -> construct:('b -> 'bt) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> variant ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -226,34 +232,43 @@ module type S = sig
             {[
               Fn.compose (construct f) (construct g) = construct (Fn.compose f g)
             ]} *)
-        val constructor : ('b -> 'bt) -> ('a, 'b) t -> ('at, 'bt) t
+        val constructor
+          :  ('b -> 'bt) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> constructor ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
-        val constructor : ('b -> 'bt) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+        val constructor
+          :  ('b -> 'bt) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> constructor ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
-        val constructor : ('b -> 'bt) -> ('a, 'b, 'c, 'd) t -> ('at, 'bt, 'c, 'd) t
+        val constructor
+          :  ('b -> 'bt) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> constructor ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -270,34 +285,40 @@ module type S = sig
             {[
               Fn.compose (getter f) (getter g) = getter (Fn.compose g f)
             ]} *)
-        val getter : ('at -> 'a) -> ('a, 'b) t -> ('at, 'bt) t
+        val getter : ('at -> 'a) @ local -> ('a, 'b) t @ local -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> getter ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
-        val getter : ('at -> 'a) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+        val getter
+          :  ('at -> 'a) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> getter ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
-        val getter : ('at -> 'a) -> ('a, 'b, 'c, 'd) t -> ('at, 'bt, 'c, 'd) t
+        val getter
+          :  ('at -> 'a) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> getter ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -322,42 +343,42 @@ module type S = sig
                    | Second a -> Second (j a)))
             ]} *)
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-          -> ('a, 'b) t
-          -> ('at, 'bt) t
+          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> optional ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
+          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> optional ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> optional ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -375,37 +396,43 @@ module type S = sig
               Fn.compose (optional_getter f) (optional_getter g)
               = optional_getter (fun a -> Option.bind (f a) ~f:g)
             ]} *)
-        val optional_getter : ('at -> 'a option) -> ('a, 'b) t -> ('at, 'bt) t
+        val optional_getter
+          :  ('at -> 'a option) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> optional_getter ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
-        val optional_getter : ('at -> 'a option) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+        val optional_getter
+          :  ('at -> 'a option) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> optional_getter ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
         val optional_getter
-          :  ('at -> 'a option)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          :  ('at -> 'a option) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> optional_getter ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -453,40 +480,43 @@ module type S = sig
               Fn.compose (nonempty f) (nonempty g)
               = nonempty (fun at -> Nonempty.Accessed.bind (f at) ~f:g)
             ]} *)
-        val nonempty : ('at -> ('bt, 'a, 'b) Nonempty.t) -> ('a, 'b) t -> ('at, 'bt) t
+        val nonempty
+          :  ('at -> ('bt, 'a, 'b) Nonempty.t) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> nonempty ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
         val nonempty
-          :  ('at -> ('bt, 'a, 'b) Nonempty.t)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
+          :  ('at -> ('bt, 'a, 'b) Nonempty.t) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> nonempty ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
         val nonempty
-          :  ('at -> ('bt, 'a, 'b) Nonempty.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          :  ('at -> ('bt, 'a, 'b) Nonempty.t) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> nonempty ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -506,40 +536,43 @@ module type S = sig
               Fn.compose (nonempty_getter f) (nonempty_getter g)
               = nonempty_getter (fun at -> Nonempty_getter.bind (f at) ~f:g)
             ]} *)
-        val nonempty_getter : ('at -> 'a Nonempty_getter.t) -> ('a, 'b) t -> ('at, 'bt) t
+        val nonempty_getter
+          :  ('at -> 'a Nonempty_getter.t) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> nonempty_getter ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
         val nonempty_getter
-          :  ('at -> 'a Nonempty_getter.t)
-          -> ('a, 'b, 'c) t
-          -> ('at, 'bt, 'c) t
+          :  ('at -> 'a Nonempty_getter.t) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> nonempty_getter ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
         val nonempty_getter
-          :  ('at -> 'a Nonempty_getter.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          :  ('at -> 'a Nonempty_getter.t) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> nonempty_getter ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -587,37 +620,43 @@ module type S = sig
               Fn.compose (many f) (many g)
               = many (fun at -> Many.Accessed.bind (f at) ~f:g)
             ]} *)
-        val many : ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b) t -> ('at, 'bt) t
+        val many
+          :  ('at -> ('bt, 'a, 'b) Many.t) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> many ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
-        val many : ('at -> ('bt, 'a, 'b) Many.t) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+        val many
+          :  ('at -> ('bt, 'a, 'b) Many.t) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> many ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
         val many
-          :  ('at -> ('bt, 'a, 'b) Many.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          :  ('at -> ('bt, 'a, 'b) Many.t) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> many ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -637,37 +676,43 @@ module type S = sig
               Fn.compose (many_getter f) (many_getter g)
               = many_getter (fun at -> Many_getter.bind (f at) ~f:g)
             ]} *)
-        val many_getter : ('at -> 'a Many_getter.t) -> ('a, 'b) t -> ('at, 'bt) t
+        val many_getter
+          :  ('at -> 'a Many_getter.t) @ local
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> many_getter ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
-        val many_getter : ('at -> 'a Many_getter.t) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+        val many_getter
+          :  ('at -> 'a Many_getter.t) @ local
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> many_getter ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
         type ('a, 'b, 'c, 'd) t
 
         val many_getter
-          :  ('at -> 'a Many_getter.t)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          :  ('at -> 'a Many_getter.t) @ local
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> many_getter ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 
@@ -684,23 +729,29 @@ module type S = sig
             {[
               Fn.compose (mapper f) (mapper g) = mapper (fun a ~f:h -> f a ~f:(g ~f:h))
             ]} *)
-        val mapper : ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b) t -> ('at, 'bt) t
+        val mapper
+          :  ('at -> f:('a -> 'b) -> 'bt)
+          -> ('a, 'b) t @ local
+          -> ('at, 'bt) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> mapper ]) accessor
-        -> ('i Index.t * 'a, 'b) T.t
-        -> ('it Index.t * 'at, 'bt) T.t
+        -> ('i Index.t * 'a, 'b) T.t @ local
+        -> ('it Index.t * 'at, 'bt) T.t @ local
     end
 
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
-        val mapper : ('at -> f:('a -> 'b) -> 'bt) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+        val mapper
+          :  ('at -> f:('a -> 'b) -> 'bt)
+          -> ('a, 'b, 'c) t @ local
+          -> ('at, 'bt, 'c) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> mapper ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c) T.t
-        -> ('it Index.t * 'at, 'bt, 'c) T.t
+        -> ('i Index.t * 'a, 'b, 'c) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c) T.t @ local
     end
 
     module Make_access4 (T : sig
@@ -708,13 +759,13 @@ module type S = sig
 
         val mapper
           :  ('at -> f:('a -> 'b) -> 'bt)
-          -> ('a, 'b, 'c, 'd) t
-          -> ('at, 'bt, 'c, 'd) t
+          -> ('a, 'b, 'c, 'd) t @ local
+          -> ('at, 'bt, 'c, 'd) t @ local
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> mapper ]) accessor
-        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t
-        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t
+        -> ('i Index.t * 'a, 'b, 'c, 'd) T.t @ local
+        -> ('it Index.t * 'at, 'bt, 'c, 'd) T.t @ local
     end
   end
 end

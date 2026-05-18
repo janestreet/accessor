@@ -25,7 +25,13 @@ end
 
 include module type of O
 
-val map_reduce : 'a t -> empty:'r -> combine:('r -> 'r -> 'r) -> f:('a -> 'r) -> 'r
+val map_reduce
+  :  'a t
+  -> empty:'r
+  -> combine:('r -> 'r -> 'r)
+  -> f:('a -> 'r) @ local
+  -> 'r
+
 val of_many : (_, 'a, _) Many.t -> 'a t
 val of_nonempty : (_, 'a, _) Nonempty.t -> 'a t
 val of_nonempty_getter : 'a Nonempty_getter.t -> 'a t
