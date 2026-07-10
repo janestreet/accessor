@@ -2,4 +2,4 @@
  (name accessor_test_helpers)
  (libraries accessor applicative_without_return core)
  (preprocess
-  (pps ppx_jane ppx_accessor)))
+  (pps ppx_jane -compare-require-explicit-locality ppx_accessor)))

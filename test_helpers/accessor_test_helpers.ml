@@ -16,36 +16,40 @@ module Quickcheckable = struct
 end
 
 module Testable = struct
-  module type S = sig
-    type t [@@deriving equal, quickcheck, sexp_of]
+  [%%template
+  [@@@mode m = (local, global)]
+
+  module type [@mode m] S = sig
+    type t [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
   end
 
-  module Either (A : S) (B : S) = struct
-    type t = (A.t, B.t) Either.t [@@deriving equal, quickcheck, sexp_of]
+  module [@mode m] Either (A : S [@mode m]) (B : S [@mode m]) = struct
+    type t = (A.t, B.t) Either.t
+    [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
   end
 
-  module Tuple (A : S) (B : S) = struct
-    type t = A.t * B.t [@@deriving equal, quickcheck, sexp_of]
+  module [@mode m] Tuple (A : S [@mode m]) (B : S [@mode m]) = struct
+    type t = A.t * B.t [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
   end
 
-  module Option (A : S) = struct
-    type t = A.t option [@@deriving equal, quickcheck, sexp_of]
+  module [@mode m] Option (A : S [@mode m]) = struct
+    type t = A.t option [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
   end
 
-  module List (A : S) = struct
-    type t = A.t list [@@deriving equal, quickcheck, sexp_of]
+  module [@mode m] List (A : S [@mode m]) = struct
+    type t = A.t list [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
   end
 
-  module Bool_map (A : S) = struct
-    type t = A.t Bool.Map.t [@@deriving equal, sexp_of]
+  module [@mode m] Bool_map (A : S [@mode m]) = struct
+    type t = A.t Bool.Map.t [@@deriving (equal [@mode.explicit m]), sexp_of]
 
     let quickcheck_generator = [%quickcheck.generator: (bool, A.t) Bool.Map.t]
     let quickcheck_shrinker = [%quickcheck.shrinker: (bool, A.t) Bool.Map.t]
     let quickcheck_observer = [%quickcheck.observer: (bool, A.t) Bool.Map.t]
-  end
+  end]
 
   module Bool_set = struct
-    type t = Bool.Set.t [@@deriving equal, sexp_of]
+    type t = Bool.Set.t [@@deriving equal ~localize, sexp_of]
 
     let quickcheck_generator = [%quickcheck.generator: bool Bool.Set.t]
     let quickcheck_shrinker = [%quickcheck.shrinker: bool Bool.Set.t]
@@ -80,15 +84,22 @@ let test
     ~f:(fun (env, t) -> f (accessor env) t)
 ;;
 
-let mapper
+[%%template
+[@@@mode m = (local, global)]
+
+let[@mode m] mapper
   (type a at)
-  (module A : Testable.S with type t = a)
-  (module At : Testable.S with type t = at)
+  (module A : Testable.S with type t = a[@mode m])
+  (module At : Testable.S with type t = at[@mode m])
   env
   accessor
   =
   test env (module At) accessor ~f:(fun accessor at ->
-    test_eq [%equal: At.t] [%sexp_of: At.t] (Accessor.map accessor at ~f:Fn.id) at);
+    test_eq
+      ([%equal: At.t] [@mode.explicit m])
+      [%sexp_of: At.t]
+      (Accessor.map accessor at ~f:Fn.id)
+      at);
   test
     env
     (module struct
@@ -97,27 +108,28 @@ let mapper
     accessor
     ~f:(fun accessor (at, f, g) ->
       test_eq
-        [%equal: At.t]
+        ([%equal: At.t] [@mode.explicit m])
         [%sexp_of: At.t]
         (Accessor.map accessor at ~f:(Fn.compose f g))
         (Accessor.map accessor (Accessor.map accessor at ~f:g) ~f))
 ;;
 
-let many
+let[@mode m] many
   (type a at)
-  (module A : Testable.S with type t = a)
-  (module At : Testable.S with type t = at)
+  (module A : Testable.S with type t = a[@mode m])
+  (module At : Testable.S with type t = at[@mode m])
   env
   accessor
   =
   let module X : sig
-    type 'a t [@@deriving equal, quickcheck, sexp_of]
+    type 'a t [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
 
     include Applicative.S with type 'a t := 'a t
     module Accessor : Accessor.Applicative.S with type 'a t := 'a t
   end = struct
     module T = struct
-      type 'a t = A.t list * 'a [@@deriving equal, quickcheck, sexp_of]
+      type 'a t = A.t list * 'a
+      [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
 
       include Applicative.Make_using_map2 (struct
           type 'a t = A.t list * 'a
@@ -141,7 +153,7 @@ let many
   in
   test env (module At) accessor ~f:(fun accessor at ->
     test_eq
-      [%equal: At.t X.t]
+      ([%equal: At.t X.t] [@mode.explicit m])
       [%sexp_of: At.t X.t]
       (X.Accessor.map accessor at ~f:X.return)
       (X.return at));
@@ -153,28 +165,29 @@ let many
     accessor
     ~f:(fun accessor (at, f, g) ->
       test_eq
-        [%equal: At.t X.t Y.t]
+        ([%equal: At.t X.t Y.t] [@mode.explicit m])
         [%sexp_of: At.t X.t Y.t]
         (XY.Accessor.map accessor at ~f:(fun a -> Y.map (g a) ~f))
         (Y.map (Y.Accessor.map accessor at ~f:g) ~f:(fun at ->
            X.Accessor.map accessor at ~f)))
 ;;
 
-let nonempty
+let[@mode m] nonempty
   (type a at)
-  (module A : Testable.S with type t = a)
-  (module At : Testable.S with type t = at)
+  (module A : Testable.S with type t = a[@mode m])
+  (module At : Testable.S with type t = at[@mode m])
   env
   accessor
   =
   let module X : sig
-    type 'a t [@@deriving equal, quickcheck, sexp_of]
+    type 'a t [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
 
     include Applicative_without_return.S with type 'a t := 'a t
     module Accessor : Accessor.Applicative_without_return.S with type 'a t := 'a t
   end = struct
     module T = struct
-      type 'a t = A.t Nonempty_list.t * 'a [@@deriving equal, quickcheck, sexp_of]
+      type 'a t = A.t Nonempty_list.t * 'a
+      [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
 
       include Applicative_without_return.Make (struct
           type 'a t = A.t Nonempty_list.t * 'a
@@ -216,17 +229,17 @@ let nonempty
     accessor
     ~f:(fun accessor (at, f, g) ->
       test_eq
-        [%equal: At.t X.t Y.t]
+        ([%equal: At.t X.t Y.t] [@mode.explicit m])
         [%sexp_of: At.t X.t Y.t]
         (XY.Accessor.map accessor at ~f:(fun a -> Y.map (g a) ~f))
         (Y.map (Y.Accessor.map accessor at ~f:g) ~f:(fun at ->
            X.Accessor.map accessor at ~f)))
 ;;
 
-let optional
+let[@mode m] optional
   (type a at)
-  (module A : Testable.S with type t = a)
-  (module At : Testable.S with type t = at)
+  (module A : Testable.S with type t = a[@mode m])
+  (module At : Testable.S with type t = at[@mode m])
   env
   accessor
   =
@@ -236,7 +249,7 @@ let optional
     accessor
     ~f:(fun accessor (at, a) ->
       test_eq
-        [%equal: (A.t, At.t) Either.t]
+        ([%equal: (A.t, At.t) Either.t] [@mode.explicit m])
         [%sexp_of: (A.t, At.t) Either.t]
         (Accessor.match_ accessor (at.@(accessor) <- a))
         (Either.First.map (Accessor.match_ accessor at) ~f:(const a)));
@@ -246,23 +259,23 @@ let optional
       | First a -> at.@(accessor) <- a
       | Second bt -> bt
     in
-    test_eq [%equal: At.t] [%sexp_of: At.t] at bt);
+    test_eq ([%equal: At.t] [@mode.explicit m]) [%sexp_of: At.t] at bt);
   test
     env
     (Quickcheckable.tuple (module At) (module A))
     accessor
     ~f:(fun accessor (at, a) ->
       test_eq
-        [%equal: At.t]
+        ([%equal: At.t] [@mode.explicit m])
         [%sexp_of: At.t]
         ((at.@(accessor) <- a).@(accessor) <- a)
         (at.@(accessor) <- a))
 ;;
 
-let field
+let[@mode m] field
   (type a at)
-  (module A : Testable.S with type t = a)
-  (module At : Testable.S with type t = at)
+  (module A : Testable.S with type t = a[@mode m])
+  (module At : Testable.S with type t = at[@mode m])
   env
   accessor
   =
@@ -271,31 +284,39 @@ let field
     (Quickcheckable.tuple (module At) (module A))
     accessor
     ~f:(fun accessor (at, a) ->
-      test_eq [%equal: A.t] [%sexp_of: A.t] (at.@(accessor) <- a).@(accessor) a);
+      test_eq
+        ([%equal: A.t] [@mode.explicit m])
+        [%sexp_of: A.t]
+        (at.@(accessor) <- a).@(accessor)
+        a);
   test env (module At) accessor ~f:(fun accessor at ->
-    test_eq [%equal: At.t] [%sexp_of: At.t] (at.@(accessor) <- at.@(accessor)) at);
+    test_eq
+      ([%equal: At.t] [@mode.explicit m])
+      [%sexp_of: At.t]
+      (at.@(accessor) <- at.@(accessor))
+      at);
   test
     env
     (Quickcheckable.tuple (module At) (module A))
     accessor
     ~f:(fun accessor (at, a) ->
       test_eq
-        [%equal: At.t]
+        ([%equal: At.t] [@mode.explicit m])
         [%sexp_of: At.t]
         ((at.@(accessor) <- a).@(accessor) <- a)
         (at.@(accessor) <- a))
 ;;
 
-let variant
+let[@mode m] variant
   (type a at)
-  (module A : Testable.S with type t = a)
-  (module At : Testable.S with type t = at)
+  (module A : Testable.S with type t = a[@mode m])
+  (module At : Testable.S with type t = at[@mode m])
   env
   accessor
   =
   test env (module A) accessor ~f:(fun accessor a ->
     test_eq
-      [%equal: (A.t, At.t) Either.t]
+      ([%equal: (A.t, At.t) Either.t] [@mode.explicit m])
       [%sexp_of: (A.t, At.t) Either.t]
       (Accessor.match_ accessor (Accessor.construct accessor a))
       (First a));
@@ -305,22 +326,26 @@ let variant
       | First a -> Accessor.construct accessor a
       | Second bt -> bt
     in
-    test_eq [%equal: At.t] [%sexp_of: At.t] at bt)
+    test_eq ([%equal: At.t] [@mode.explicit m]) [%sexp_of: At.t] at bt)
 ;;
 
-let isomorphism
+let[@mode m] isomorphism
   (type a at)
-  (module A : Testable.S with type t = a)
-  (module At : Testable.S with type t = at)
+  (module A : Testable.S with type t = a[@mode m])
+  (module At : Testable.S with type t = at[@mode m])
   env
   accessor
   =
   test env (module A) accessor ~f:(fun accessor a ->
-    test_eq [%equal: A.t] [%sexp_of: A.t] (Accessor.construct accessor a).@(accessor) a);
+    test_eq
+      ([%equal: A.t] [@mode.explicit m])
+      [%sexp_of: A.t]
+      (Accessor.construct accessor a).@(accessor)
+      a);
   test env (module At) accessor ~f:(fun accessor at ->
     test_eq
-      [%equal: At.t]
+      ([%equal: At.t] [@mode.explicit m])
       [%sexp_of: At.t]
       (Accessor.construct accessor at.@(accessor))
       at)
-;;
+;;]

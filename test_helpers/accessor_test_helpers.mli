@@ -8,63 +8,80 @@ module Quickcheckable : sig
 end
 
 module Testable : sig
-  module type S = sig
-    type t [@@deriving equal, quickcheck, sexp_of]
+  module type%template [@mode m = (local, global)] S = sig
+    type t [@@deriving (equal [@mode.explicit m]), quickcheck, sexp_of]
   end
 
-  module Either (A : S) (B : S) : S with type t = (A.t, B.t) Either.t
-  module Tuple (A : S) (B : S) : S with type t = A.t * B.t
-  module Option (A : S) : S with type t = A.t option
-  module List (A : S) : S with type t = A.t list
-  module Bool_map (A : S) : S with type t = A.t Bool.Map.t
-  module Bool_set : S with type t = Bool.Set.t
+  module%template [@mode m = (local, global)] Either (A : S [@mode m]) (B : S [@mode m]) :
+    S [@mode m] with type t = (A.t, B.t) Either.t
+
+  module%template [@mode m = (local, global)] Tuple (A : S [@mode m]) (B : S [@mode m]) :
+    S [@mode m] with type t = A.t * B.t
+
+  module%template [@mode m = (local, global)] Option (A : S [@mode m]) :
+    S [@mode m] with type t = A.t option
+
+  module%template [@mode m = (local, global)] List (A : S [@mode m]) :
+    S [@mode m] with type t = A.t list
+
+  module%template [@mode m = (local, global)] Bool_map (A : S [@mode m]) :
+    S [@mode m] with type t = A.t Bool.Map.t
+
+  module Bool_set : S [@mode local] with type t = Bool.Set.t
 end
 
-val mapper
-  :  (module Testable.S with type t = 'a)
-  -> (module Testable.S with type t = 'at)
+val%template mapper
+  :  ((module Testable.S with type t = 'a)[@mode m])
+  -> ((module Testable.S with type t = 'at)[@mode m])
   -> (module Quickcheckable.S with type t = 'env)
   -> ('env -> (unit, 'a, 'at, [> mapper ]) Accessor.t)
   -> unit
+[@@mode m = (local, global)]
 
-val many
-  :  (module Testable.S with type t = 'a)
-  -> (module Testable.S with type t = 'at)
+val%template many
+  :  ((module Testable.S with type t = 'a)[@mode m])
+  -> ((module Testable.S with type t = 'at)[@mode m])
   -> (module Quickcheckable.S with type t = 'env)
   -> ('env -> (unit, 'a, 'at, [> many ]) Accessor.t)
   -> unit
+[@@mode m = (local, global)]
 
-val nonempty
-  :  (module Testable.S with type t = 'a)
-  -> (module Testable.S with type t = 'at)
+val%template nonempty
+  :  ((module Testable.S with type t = 'a)[@mode m])
+  -> ((module Testable.S with type t = 'at)[@mode m])
   -> (module Quickcheckable.S with type t = 'env)
   -> ('env -> (unit, 'a, 'at, [> nonempty ]) Accessor.t)
   -> unit
+[@@mode m = (local, global)]
 
-val optional
-  :  (module Testable.S with type t = 'a)
-  -> (module Testable.S with type t = 'at)
+val%template optional
+  :  ((module Testable.S with type t = 'a)[@mode m])
+  -> ((module Testable.S with type t = 'at)[@mode m])
   -> (module Quickcheckable.S with type t = 'env)
   -> ('env -> (unit, 'a, 'at, [> optional ]) Accessor.t)
   -> unit
+[@@mode m = (local, global)]
 
-val field
-  :  (module Testable.S with type t = 'a)
-  -> (module Testable.S with type t = 'at)
+val%template field
+  :  ((module Testable.S with type t = 'a)[@mode m])
+  -> ((module Testable.S with type t = 'at)[@mode m])
   -> (module Quickcheckable.S with type t = 'env)
   -> ('env -> (unit, 'a, 'at, [> field ]) Accessor.t)
   -> unit
+[@@mode m = (local, global)]
 
-val variant
-  :  (module Testable.S with type t = 'a)
-  -> (module Testable.S with type t = 'at)
+val%template variant
+  :  ((module Testable.S with type t = 'a)[@mode m])
+  -> ((module Testable.S with type t = 'at)[@mode m])
   -> (module Quickcheckable.S with type t = 'env)
   -> ('env -> (unit, 'a, 'at, [> variant ]) Accessor.t)
   -> unit
+[@@mode m = (local, global)]
 
-val isomorphism
-  :  (module Testable.S with type t = 'a)
-  -> (module Testable.S with type t = 'at)
+val%template isomorphism
+  :  ((module Testable.S with type t = 'a)[@mode m])
+  -> ((module Testable.S with type t = 'at)[@mode m])
   -> (module Quickcheckable.S with type t = 'env)
   -> ('env -> (unit, 'a, 'at, [> isomorphism ]) Accessor.t)
   -> unit
+[@@mode m = (local, global)]
