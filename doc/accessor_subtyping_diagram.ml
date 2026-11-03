@@ -9,7 +9,7 @@ module Color = struct
       | Green
       | Blue
       | Indigo
-    [@@deriving compare, sexp_of]
+    [@@deriving compare ~localize, sexp_of]
   end
 
   include T
@@ -28,7 +28,7 @@ module Feature = struct
       | `get
       | `map
       ]
-    [@@deriving compare, enumerate, sexp_of]
+    [@@deriving compare ~localize, enumerate, sexp_of]
   end
 
   include T

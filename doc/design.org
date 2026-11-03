@@ -1,3 +1,5 @@
+#+title: How ~Accessor~ works
+#+author: Jake McArthur
 
 This document aims to bring a developer up to speed for understanding the
 /implementation/ of ~Accessor~. If you are just trying to understand how to use

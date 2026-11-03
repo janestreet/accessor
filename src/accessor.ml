@@ -125,7 +125,8 @@ module Prim = struct
         type ('a, 'b, 'c, 'd) t
 
         val field
-          :  ('at -> 'a * ('b -> 'bt)) @ local
+          :  get:('at -> 'a) @ local
+          -> get_and_set:('at -> 'a * ('b -> 'bt)) @ local
           -> ('a, 'b, 'c, 'd) t @ local
           -> ('at, 'bt, 'c, 'd) t @ local
       end) =
@@ -133,7 +134,9 @@ module Prim = struct
       module M = Mapping.Make4 (T)
 
       let field =
-        { Dictionary.Create.Field.f = (fun f hk -> exclave_ M.projected hk ~f:(T.field f))
+        { Dictionary.Create.Field.f =
+            (fun ~get ~get_and_set hk -> exclave_
+              M.projected hk ~f:(T.field ~get ~get_and_set))
         }
       ;;
 
@@ -146,7 +149,8 @@ module Prim = struct
         type ('a, 'b, 'c) t
 
         val field
-          :  ('at -> 'a * ('b -> 'bt)) @ local
+          :  get:('at -> 'a) @ local
+          -> get_and_set:('at -> 'a * ('b -> 'bt)) @ local
           -> ('a, 'b, 'c) t @ local
           -> ('at, 'bt, 'c) t @ local
       end) =
@@ -160,7 +164,8 @@ module Prim = struct
         type ('a, 'b) t
 
         val field
-          :  ('at -> 'a * ('b -> 'bt)) @ local
+          :  get:('at -> 'a) @ local
+          -> get_and_set:('at -> 'a * ('b -> 'bt)) @ local
           -> ('a, 'b) t @ local
           -> ('at, 'bt) t @ local
       end) =
@@ -333,7 +338,8 @@ module Prim = struct
         type ('a, 'b, 'c, 'd) t
 
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          :  match_:('at -> ('a, 'bt) Either.t) @ local
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
           -> ('a, 'b, 'c, 'd) t @ local
           -> ('at, 'bt, 'c, 'd) t @ local
       end) =
@@ -342,7 +348,8 @@ module Prim = struct
 
       let optional =
         { Dictionary.Create.Optional.f =
-            (fun f hk -> exclave_ M.projected hk ~f:(T.optional f))
+            (fun ~match_ ~match_and_set hk -> exclave_
+              M.projected hk ~f:(T.optional ~match_ ~match_and_set))
         }
       ;;
 
@@ -355,7 +362,8 @@ module Prim = struct
         type ('a, 'b, 'c) t
 
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          :  match_:('at -> ('a, 'bt) Either.t) @ local
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
           -> ('a, 'b, 'c) t @ local
           -> ('at, 'bt, 'c) t @ local
       end) =
@@ -369,7 +377,8 @@ module Prim = struct
         type ('a, 'b) t
 
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          :  match_:('at -> ('a, 'bt) Either.t) @ local
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
           -> ('a, 'b) t @ local
           -> ('at, 'bt) t @ local
       end) =
@@ -793,23 +802,31 @@ module Prim = struct
     }
   ;;
 
-  let field' f =
+  let field ~get ~get_and_set =
     { f =
         (fun dictionary -> exclave_
-          ((Dictionary.Run.field dictionary (fun (it, at) ->
-              let a, construct = f at in
-              (it, a), construct)
+          ((Dictionary.Run.field
+              dictionary
+              ~get:(fun (it, at) -> it, get at)
+              ~get_and_set:(fun (it, at) ->
+                let a, construct = get_and_set at in
+                (it, a), construct)
             |> Mapping.with_hk)
            [@nontail]))
     }
   ;;
 
-  let fieldi' f =
+  let fieldi ~get ~get_and_set =
     { f =
         (fun dictionary -> exclave_
-          ((Dictionary.Run.field dictionary (fun (it, at) ->
-              let i, a, construct = f at in
-              (Index.(i :: it), a), construct)
+          ((Dictionary.Run.field
+              dictionary
+              ~get:(fun (it, at) ->
+                let i, a = get at in
+                Index.(i :: it), a)
+              ~get_and_set:(fun (it, at) ->
+                let i, a, construct = get_and_set at in
+                (Index.(i :: it), a), construct)
             |> Mapping.with_hk)
            [@nontail]))
     }
@@ -860,25 +877,37 @@ module Prim = struct
     }
   ;;
 
-  let optional' f =
+  let optional ~match_ ~match_and_set =
     { f =
         (fun dictionary -> exclave_
-          ((Dictionary.Run.optional dictionary (fun (it, at) ->
-              match f at with
-              | Either.First (a, construct) -> First ((it, a), construct)
-              | Second _ as bt -> bt)
+          ((Dictionary.Run.optional
+              dictionary
+              ~match_:(fun (it, at) ->
+                match match_ at with
+                | Either.First a -> First (it, a)
+                | Second _ as bt -> bt)
+              ~match_and_set:(fun (it, at) ->
+                match match_and_set at with
+                | Either.First (a, construct) -> First ((it, a), construct)
+                | Second _ as bt -> bt)
             |> Mapping.with_hk)
            [@nontail]))
     }
   ;;
 
-  let optionali' f =
+  let optionali ~match_ ~match_and_set =
     { f =
         (fun dictionary -> exclave_
-          ((Dictionary.Run.optional dictionary (fun (it, at) ->
-              match f at with
-              | Either.First (i, a, construct) -> First ((Index.(i :: it), a), construct)
-              | Second _ as bt -> bt)
+          ((Dictionary.Run.optional
+              dictionary
+              ~match_:(fun (it, at) ->
+                match match_ at with
+                | Either.First (i, a) -> First (Index.(i :: it), a)
+                | Second _ as bt -> bt)
+              ~match_and_set:(fun (it, at) ->
+                match match_and_set at with
+                | Either.First (i, a, construct) -> First ((Index.(i :: it), a), construct)
+                | Second _ as bt -> bt)
             |> Mapping.with_hk)
            [@nontail]))
     }
@@ -887,7 +916,9 @@ module Prim = struct
   let dummy =
     { f =
         (fun dictionary mapping -> exclave_
-          (optional' Either.second).f dictionary mapping)
+          (optional ~match_:Either.second ~match_and_set:Either.second).f
+            dictionary
+            mapping)
     }
   ;;
 
@@ -918,8 +949,11 @@ module Prim = struct
   let filter_index f =
     { f =
         (fun dictionary -> exclave_
-          ((Dictionary.Run.optional dictionary (fun ((i, a) as ia) ->
-              if f i then First (ia, Fn.id) else Second a)
+          ((Dictionary.Run.optional
+              dictionary
+              ~match_:(fun ((i, a) as ia) -> if f i then First ia else Second a)
+              ~match_and_set:(fun ((i, a) as ia) ->
+                if f i then First (ia, Fn.id) else Second a)
             |> Mapping.with_hk)
            [@nontail]))
     }
@@ -928,10 +962,16 @@ module Prim = struct
   let filter_map_index f =
     { f =
         (fun dictionary -> exclave_
-          ((Dictionary.Run.optional dictionary (fun (i, a) ->
-              match f i with
-              | None -> Second a
-              | Some i -> First ((i, a), Fn.id))
+          ((Dictionary.Run.optional
+              dictionary
+              ~match_:(fun (i, a) ->
+                match f i with
+                | None -> Second a
+                | Some i -> First (i, a))
+              ~match_and_set:(fun (i, a) ->
+                match f i with
+                | None -> Second a
+                | Some i -> First ((i, a), Fn.id))
             |> Mapping.with_hk)
            [@nontail]))
     }
@@ -1498,8 +1538,8 @@ module Of_functor3 (F : sig
   include Field.Make_access4 (struct
       type ('a, 'b, 'd, 'e) t = 'a -> ('b, 'd, 'e) F.t
 
-      let field field_f t at =
-        let a, construct = field_f at in
+      let field ~get:_ ~get_and_set t at =
+        let a, construct = get_and_set at in
         F.map (t a) ~f:construct
       ;;
     end)
@@ -2005,12 +2045,22 @@ let fold_mapi t at ~init ~f =
 
 let folding_map t at ~init ~f = snd (fold_map t at ~init ~f)
 let folding_mapi t at ~init ~f = snd (fold_mapi t at ~init ~f)
-let field ~get ~set = field' (fun at -> get at, set at)
+let field ~get ~set = Prim.field ~get ~get_and_set:(fun at -> get at, set at)
 
 let fieldi ~get ~set =
-  fieldi' (fun at ->
+  Prim.fieldi ~get ~get_and_set:(fun at ->
     let i, a = get at in
     i, a, set at)
+;;
+
+let field' get_and_set = Prim.field ~get:(fun at -> fst (get_and_set at)) ~get_and_set
+
+let fieldi' get_and_set =
+  Prim.fieldi
+    ~get:(fun at ->
+      let i, a, _ = get_and_set at in
+      i, a)
+    ~get_and_set
 ;;
 
 let of_field field_t = field ~get:(Base.Field.get field_t) ~set:(Base.Field.fset field_t)
@@ -2022,17 +2072,35 @@ let of_fieldi field_t =
 ;;
 
 let optional ~match_ ~set =
-  optional' (fun at ->
+  Prim.optional ~match_ ~match_and_set:(fun at ->
     match match_ at with
     | Either.First a -> First (a, set at)
     | Second _ as bt -> bt)
 ;;
 
+let optional' match_and_set =
+  Prim.optional
+    ~match_:(fun at ->
+      match match_and_set at with
+      | Either.First (a, _) -> First a
+      | Second _ as bt -> bt)
+    ~match_and_set
+;;
+
 let optionali ~match_ ~set =
-  optionali' (fun at ->
+  Prim.optionali ~match_ ~match_and_set:(fun at ->
     match match_ at with
     | Either.First (i, a) -> First (i, a, set at)
     | Second _ as bt -> bt)
+;;
+
+let optionali' match_and_set =
+  Prim.optionali
+    ~match_:(fun at ->
+      match match_and_set at with
+      | Either.First (i, a, _) -> First (i, a)
+      | Second _ as bt -> bt)
+    ~match_and_set
 ;;
 
 let of_variant variant_t = constructor variant_t.Base.Variant.constructor
@@ -2062,8 +2130,8 @@ let get_option t at = Option.map (get_optioni t at) ~f:(fun ([], a) -> a)
 module Match_ = Optional.Make_access3 (struct
     type ('at, 'bt, 'a) t = 'at -> ('a, 'bt) Either.t
 
-    let optional match_ t att =
-      match match_ att with
+    let optional ~match_:_ ~match_and_set t att =
+      match match_and_set att with
       | Either.First (at, construct) ->
         (match t at with
          | Either.First _ as a -> a

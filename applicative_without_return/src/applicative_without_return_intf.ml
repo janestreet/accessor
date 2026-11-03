@@ -94,7 +94,9 @@ module type Applicative_without_return = sig
   module type S2 = S2
   module type S3 = S3
 
-  module Make (B : Basic) : S with type 'a t := 'a B.t
-  module Make2 (B : Basic2) : S2 with type ('a, 'e) t := ('a, 'e) B.t
-  module Make3 (B : Basic3) : S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) B.t
+  module%template.portable Make (B : Basic) : S with type 'a t := 'a B.t
+  module%template.portable Make2 (B : Basic2) : S2 with type ('a, 'e) t := ('a, 'e) B.t
+
+  module%template.portable Make3 (B : Basic3) :
+    S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) B.t
 end

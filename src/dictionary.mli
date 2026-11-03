@@ -25,7 +25,8 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a * ('b -> 'bt)) @ local
+          get:('at -> 'a) @ local
+          -> get_and_set:('at -> 'a * ('b -> 'bt)) @ local
           -> ('a, 'b, 'w) Hk.t2 @ local
           -> ('at, 'bt, 'w) Hk.t2 @ local
         @@ global
@@ -74,7 +75,8 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
+          match_:('at -> ('a, 'bt) Either.t) @ local
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t) @ local
           -> ('a, 'b, 'w) Hk.t2 @ local
           -> ('at, 'bt, 'w) Hk.t2 @ local
         @@ global
@@ -177,19 +179,20 @@ module Run : sig
 
   val constructor
     :  ([< constructor ], 'w) t @ local
-    -> ('b -> 'bt)
+    -> ('b -> 'bt) @ local
     -> ('a, 'b, 'w) Hk.t2 @ local
     -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val field
     :  ([< field ], 'w) t @ local
-    -> ('at -> 'a * ('b -> 'bt))
+    -> get:('at -> 'a) @ local
+    -> get_and_set:('at -> 'a * ('b -> 'bt))
     -> ('a, 'b, 'w) Hk.t2 @ local
     -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val getter
     :  ([< getter ], 'w) t @ local
-    -> ('at -> 'a)
+    -> ('at -> 'a) @ local
     -> ('a, 'b, 'w) Hk.t2 @ local
     -> ('at, 'bt, 'w) Hk.t2 @ local
 
@@ -214,7 +217,7 @@ module Run : sig
 
   val many_getter
     :  ([< many_getter ], 'w) t @ local
-    -> ('at -> 'a Many_getter.t)
+    -> ('at -> 'a Many_getter.t) @ local
     -> ('a, 'b, 'w) Hk.t2 @ local
     -> ('at, 'bt, 'w) Hk.t2 @ local
 
@@ -226,19 +229,20 @@ module Run : sig
 
   val nonempty_getter
     :  ([< nonempty_getter ], 'w) t @ local
-    -> ('at -> 'a Nonempty_getter.t)
+    -> ('at -> 'a Nonempty_getter.t) @ local
     -> ('a, 'b, 'w) Hk.t2 @ local
     -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val optional
     :  ([< optional ], 'w) t @ local
-    -> ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+    -> match_:('at -> ('a, 'bt) Either.t) @ local
+    -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t)
     -> ('a, 'b, 'w) Hk.t2 @ local
     -> ('at, 'bt, 'w) Hk.t2 @ local
 
   val optional_getter
     :  ([< optional_getter ], 'w) t @ local
-    -> ('at -> 'a option)
+    -> ('at -> 'a option) @ local
     -> ('a, 'b, 'w) Hk.t2 @ local
     -> ('at, 'bt, 'w) Hk.t2 @ local
 

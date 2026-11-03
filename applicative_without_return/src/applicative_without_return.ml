@@ -2,7 +2,8 @@ open! Base
 open! Import
 include Applicative_without_return_intf
 
-module Make3 (X : Basic3) : S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) X.t = struct
+module%template.portable Make3 (X : Basic3) :
+  S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) X.t = struct
   include X
 
   let ( <*> ) = apply
@@ -28,13 +29,15 @@ module Make3 (X : Basic3) : S3 with type ('a, 'd, 'e) t := ('a, 'd, 'e) X.t = st
   end
 end
 
-module Make2 (X : Basic2) : S2 with type ('a, 'e) t := ('a, 'e) X.t = Make3 (struct
+module%template.portable [@modality p] Make2 (X : Basic2) :
+  S2 with type ('a, 'e) t := ('a, 'e) X.t = Make3 [@modality p] (struct
     type ('a, _, 'e) t = ('a, 'e) X.t
 
     include (X : module type of X with type ('a, 'e) t := ('a, 'e) X.t)
   end)
 
-module Make (X : Basic) : S with type 'a t := 'a X.t = Make2 (struct
+module%template.portable [@modality p] Make (X : Basic) : S with type 'a t := 'a X.t =
+Make2 [@modality p] (struct
     type ('a, _) t = 'a X.t
 
     include (X : module type of X with type 'a t := 'a X.t)

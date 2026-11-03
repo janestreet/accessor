@@ -1,3 +1,4 @@
+#+title: Accessor
 
 The ~Accessor~ library makes it nicer to work with nested functional data
 structures.

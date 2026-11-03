@@ -10,4 +10,4 @@
  (names accessor_subtyping_diagram)
  (libraries accessor core)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))
