@@ -24,7 +24,10 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          get:('at -> 'a)
+          -> get_and_set:('at -> 'a * ('b -> 'bt))
+          -> ('a, 'b, 'w) Hk.t2
+          -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
@@ -57,7 +60,8 @@ module Create : sig
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+          match_:('at -> ('a, 'bt) Either.t)
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t)
           -> ('a, 'b, 'w) Hk.t2
           -> ('at, 'bt, 'w) Hk.t2
       }
@@ -143,7 +147,8 @@ module Run : sig
 
   val field
     :  ([< field ], 'w) t
-    -> ('at -> 'a * ('b -> 'bt))
+    -> get:('at -> 'a)
+    -> get_and_set:('at -> 'a * ('b -> 'bt))
     -> ('a, 'b, 'w) Hk.t2
     -> ('at, 'bt, 'w) Hk.t2
 
@@ -192,7 +197,8 @@ module Run : sig
 
   val optional
     :  ([< optional ], 'w) t
-    -> ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+    -> match_:('at -> ('a, 'bt) Either.t)
+    -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t)
     -> ('a, 'b, 'w) Hk.t2
     -> ('at, 'bt, 'w) Hk.t2
 

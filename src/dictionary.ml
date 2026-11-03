@@ -32,7 +32,10 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'w) Hk.t2 -> ('at, 'bt, 'w) Hk.t2
+          get:('at -> 'a)
+          -> get_and_set:('at -> 'a * ('b -> 'bt))
+          -> ('a, 'b, 'w) Hk.t2
+          -> ('at, 'bt, 'w) Hk.t2
       }
     [@@unboxed]
   end
@@ -65,7 +68,8 @@ module Create = struct
     type 'w t =
       { f :
           'a 'b 'at 'bt.
-          ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+          match_:('at -> ('a, 'bt) Either.t)
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t)
           -> ('a, 'b, 'w) Hk.t2
           -> ('at, 'bt, 'w) Hk.t2
       }
@@ -191,30 +195,33 @@ module Run = struct
 
   type 'w field_hack = Field_hack : ([< field ], 'w) t -> 'w field_hack [@@unboxed]
 
-  let field t field_f =
+  let field t ~get ~get_and_set =
     let (Field_hack t) = Field_hack t in
     match t with
-    | Field { f } -> f field_f
-    | Getter { f } -> f (fun at -> fst (field_f at))
-    | Optional { f } -> f (fun at -> First (field_f at))
-    | Optional_getter { f } -> f (fun at -> Some (fst (field_f at)))
+    | Field { f } -> f ~get ~get_and_set
+    | Getter { f } -> f get
+    | Optional { f } ->
+      f
+        ~match_:(fun at -> First (get at))
+        ~match_and_set:(fun at -> First (get_and_set at))
+    | Optional_getter { f } -> f (fun at -> Some (get at))
     | Nonempty { f } ->
       f (fun at ->
         let open Nonempty.Let_syntax in
-        let a, construct = field_f at in
+        let a, construct = get_and_set at in
         let%map b = Nonempty.access a in
         construct b)
-    | Nonempty_getter { f } -> f (fun at -> Nonempty_getter.access (fst (field_f at)))
+    | Nonempty_getter { f } -> f (fun at -> Nonempty_getter.access (get at))
     | Many { f } ->
       f (fun at ->
         let open Many.Let_syntax in
-        let a, construct = field_f at in
+        let a, construct = get_and_set at in
         let%map b = Many.access a in
         construct b)
-    | Many_getter { f } -> f (fun at -> Many_getter.access (fst (field_f at)))
+    | Many_getter { f } -> f (fun at -> Many_getter.access (get at))
     | Mapper { f } ->
       f (fun at ~f ->
-        let a, construct = field_f at in
+        let a, construct = get_and_set at in
         construct (f a))
   ;;
 
@@ -237,11 +244,14 @@ module Run = struct
     let (Isomorphism_hack t) = Isomorphism_hack t in
     match t with
     | Isomorphism { f } -> f ~get ~construct
-    | Field { f } -> f (fun at -> get at, construct)
+    | Field { f } -> f ~get ~get_and_set:(fun at -> get at, construct)
     | Variant { f } -> f ~match_:(fun at -> First (get at)) ~construct
     | Constructor { f } -> f construct
     | Getter { f } -> f get
-    | Optional { f } -> f (fun at -> First (get at, construct))
+    | Optional { f } ->
+      f
+        ~match_:(fun at -> First (get at))
+        ~match_and_set:(fun at -> First (get at, construct))
     | Optional_getter { f } -> f (fun at -> Some (get at))
     | Nonempty { f } ->
       f (fun at ->
@@ -311,29 +321,29 @@ module Run = struct
   type 'w optional_hack = Optional_hack : ([< optional ], 'w) t -> 'w optional_hack
   [@@unboxed]
 
-  let optional t optional_f =
+  let optional t ~match_ ~match_and_set =
     let (Optional_hack t) = Optional_hack t in
     match t with
-    | Optional { f } -> f optional_f
+    | Optional { f } -> f ~match_ ~match_and_set
     | Optional_getter { f } ->
       f (fun at ->
-        match optional_f at with
-        | First (a, _) -> Some a
+        match match_ at with
+        | First a -> Some a
         | Second _ -> None)
     | Many { f } ->
       f (fun at ->
         let open Many.Let_syntax in
-        match optional_f at with
+        match match_and_set at with
         | Either.First (a, construct) -> Many.access a >>| construct
         | Second bt -> return bt)
     | Many_getter { f } ->
       f (fun at ->
-        match optional_f at with
-        | Either.First (a, _) -> Many_getter.access a
+        match match_ at with
+        | Either.First a -> Many_getter.access a
         | Second _ -> Many_getter.empty)
     | Mapper { f } ->
       f (fun at ~f ->
-        match optional_f at with
+        match match_and_set at with
         | Either.First (a, construct) -> construct (f a)
         | Second bt -> bt)
   ;;
@@ -362,7 +372,7 @@ module Run = struct
     | Variant { f } -> f ~match_ ~construct
     | Constructor { f } -> f construct
     | Optional { f } ->
-      f (fun at ->
+      f ~match_ ~match_and_set:(fun at ->
         match match_ at with
         | First a -> First (a, construct)
         | Second _ as bt -> bt)

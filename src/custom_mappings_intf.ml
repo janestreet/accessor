@@ -99,20 +99,29 @@ module type S = sig
     module Make_access (T : sig
         type ('a, 'b) t
 
-        (** A legal implementation of this function must satisfy the following properties:
+        (** A legal implementation of this function must satisfy the following properties.
+            [get] must agree with [get_and_set]: [get at = fst (get_and_set at)] for all
+            [at]. ([get] is a read-only fast path that lets callers avoid allocating the
+            setter.)
 
             {[
-              field (fun a -> a, Fn.id) = Fn.id
+              field ~get:Fn.id ~get_and_set:(fun a -> a, Fn.id) = Fn.id
             ]}
 
             {[
-              Fn.compose (field f) (field g)
-              = field (fun a ->
+              Fn.compose
+                (field ~get:get_f ~get_and_set:f)
+                (field ~get:get_g ~get_and_set:g)
+              = field ~get:(Fn.compose get_g get_f) ~get_and_set:(fun a ->
                 let a, j = f a in
                 let a, k = g a in
                 a, Fn.compose j k)
             ]} *)
-        val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b) t -> ('at, 'bt) t
+        val field
+          :  get:('at -> 'a)
+          -> get_and_set:('at -> 'a * ('b -> 'bt))
+          -> ('a, 'b) t
+          -> ('at, 'bt) t
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> field ]) accessor
@@ -123,7 +132,11 @@ module type S = sig
     module Make_access3 (T : sig
         type ('a, 'b, 'c) t
 
-        val field : ('at -> 'a * ('b -> 'bt)) -> ('a, 'b, 'c) t -> ('at, 'bt, 'c) t
+        val field
+          :  get:('at -> 'a)
+          -> get_and_set:('at -> 'a * ('b -> 'bt))
+          -> ('a, 'b, 'c) t
+          -> ('at, 'bt, 'c) t
       end) : sig
       val access
         :  ('i -> 'a -> 'b, 'it -> 'at -> 'bt, [> field ]) accessor
@@ -135,7 +148,8 @@ module type S = sig
         type ('a, 'b, 'c, 'd) t
 
         val field
-          :  ('at -> 'a * ('b -> 'bt))
+          :  get:('at -> 'a)
+          -> get_and_set:('at -> 'a * ('b -> 'bt))
           -> ('a, 'b, 'c, 'd) t
           -> ('at, 'bt, 'c, 'd) t
       end) : sig
@@ -305,15 +319,27 @@ module type S = sig
     module Make_access (T : sig
         type ('a, 'b) t
 
-        (** A legal implementation of this function must satisfy the following properties:
+        (** A legal implementation of this function must satisfy the following properties.
+            [match_] must agree with [match_and_set]: for all [at], [match_ at] is
+            [First a] exactly when [match_and_set at] is [First (a, _)], and is [Second b]
+            exactly when [match_and_set at] is [Second b]. ([match_] is a read-only fast
+            path that lets callers avoid allocating the setter; the composition law below
+            is stated on [match_and_set], and the corresponding [match_] is its agreeing
+            projection.)
 
             {[
-              optional (fun a -> First (a, Fn.id)) = Fn.id
+              optional
+                ~match_:(fun a -> First a)
+                ~match_and_set:(fun a -> First (a, Fn.id))
+              = Fn.id
             ]}
 
             {[
-              Fn.compose (optional f) (optional g)
-              = optional (fun a ->
+              (* the resulting [~match_] is the agreeing projection of [~match_and_set] *)
+              Fn.compose
+                (optional ~match_:match_f ~match_and_set:f)
+                (optional ~match_:match_g ~match_and_set:g)
+              = optional ~match_and_set:(fun a ->
                 match f a with
                 | Second _ as a -> a
                 | First (a, j) ->
@@ -322,7 +348,8 @@ module type S = sig
                    | Second a -> Second (j a)))
             ]} *)
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+          :  match_:('at -> ('a, 'bt) Either.t)
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t)
           -> ('a, 'b) t
           -> ('at, 'bt) t
       end) : sig
@@ -336,7 +363,8 @@ module type S = sig
         type ('a, 'b, 'c) t
 
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+          :  match_:('at -> ('a, 'bt) Either.t)
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t)
           -> ('a, 'b, 'c) t
           -> ('at, 'bt, 'c) t
       end) : sig
@@ -350,7 +378,8 @@ module type S = sig
         type ('a, 'b, 'c, 'd) t
 
         val optional
-          :  ('at -> ('a * ('b -> 'bt), 'bt) Either.t)
+          :  match_:('at -> ('a, 'bt) Either.t)
+          -> match_and_set:('at -> ('a * ('b -> 'bt), 'bt) Either.t)
           -> ('a, 'b, 'c, 'd) t
           -> ('at, 'bt, 'c, 'd) t
       end) : sig
